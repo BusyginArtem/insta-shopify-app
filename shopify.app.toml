@@ -1,0 +1,36 @@
+# This file stores configurations for your Shopify app.
+client_id = "3bab18e24d0aeecf4980c3d1122784cf"
+name = "Insta Shop App Dev"
+handle = "insta-shop-app-dev"
+application_url = "https://23f4-81-221-233-224.ngrok-free.app"
+embedded = true
+
+[build]
+dev_store_url = "insta-shop-dev.myshopify.com"
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = ""
+
+[access.admin]
+# api_version = "2023-10"
+direct_api_mode = "online"
+embedded_app_direct_api_access = true
+
+[auth]
+redirect_urls = [
+  "https://23f4-81-221-233-224.ngrok-free.app/",
+  "https://23f4-81-221-233-224.ngrok-free.app/auth/signin/shopify/callback",
+  # "https://d03a-81-221-233-224.ngrok-free.app/auth/signin/shopify/callback",
+]
+
+[webhooks]
+api_version = "2024-07"
+
+[pos]
+embedded = false
+
+[app_preferences]
+url = "http://localhost:3000/"
