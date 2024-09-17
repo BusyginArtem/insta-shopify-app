@@ -23,7 +23,6 @@
     "@firebase/app-types": "^0.9.2",
     "@firebase/auth": "^1.7.8",
     "@firebase/firestore": "^4.7.1",
-    "@firebase/vertexai": "^0.0.1-vertexai-preview.8b70fc586",
     "@fullcalendar/bootstrap5": "6.1.6",
     "@fullcalendar/common": "5.11.4",
     "@fullcalendar/core": "6.1.6",

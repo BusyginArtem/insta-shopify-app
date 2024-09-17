@@ -1,5 +1,3 @@
-// export type ErrCallbackType = (err: { [key: string]: string }) => void
-// TODO update
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -11,7 +9,6 @@ declare global {
 import { User } from '@firebase/auth'
 import { Timestamp } from '@firebase/firestore'
 
-// TODO remove
 export type UserDataType = {
   id: number
   role: string
@@ -22,9 +19,8 @@ export type UserDataType = {
   avatar?: string | null
 }
 
-// TODO update
 export type Shop = {
-  id?: string
+  id: string
   ownerId: string
   shopName: string
   shopDescription: string
@@ -32,12 +28,13 @@ export type Shop = {
   shopLogo: string
   shopInstagramId: string
   shopInstagramUsername: string
-  initialProductsSyncStatus: boolean
+  initialProductsSyncStatus: number
   productsScheduleSyncStatus: number
   shopDomain: string | null
   shopCustomDomain: string | null
   initialShopDeployStatus: number
   scheduleShopDeployStatus: number
+  isVertaxEnabled: boolean
 }
 
 export type AuthValuesType = {
@@ -47,10 +44,7 @@ export type AuthValuesType = {
   loading: boolean
   user: User | null
   error: Error | null
-  // setLoading: (value: boolean) => void
-  // setUser: (value: UserDataType | null) => void
-  // login: (params: LoginParams, errorCallback?: ErrCallbackType) => void
-  onHandleSetUp: (data: InstagramSetupFormValues, callback: (shop: Shop) => Promise<void>) => Promise<void>
+  onHandleSetUp: (data: InstagramSetupFormValues) => Promise<void>
   onLogout: () => void
   onLogin: () => Promise<void>
   onSelectInstagramAccount: (account: InstagramAccountType) => void
@@ -87,8 +81,8 @@ export type InstagramSetupFormValues = {
 
 export type ProductType = {
   instagramId: string
-  shopOwnerId: string
-  shopId: string
+  shopId: Shop['id']
+  shopOwnerId: User['uid']
   type: string | null
   status: 'draft'
   title: string | null

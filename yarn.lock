@@ -424,7 +424,7 @@
     "@firebase/util" "1.9.7"
     tslib "^2.1.0"
 
-"@firebase/app-check-interop-types@0.3.1-vertexai-preview.8b70fc586", "@firebase/app-check-interop-types@0.3.2":
+"@firebase/app-check-interop-types@0.3.2":
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/@firebase/app-check-interop-types/-/app-check-interop-types-0.3.2.tgz#455b6562c7a3de3ef75ea51f72dfec5829ad6997"
   integrity sha512-LMs47Vinv2HBMZi49C09dJxp0QT5LwDzFaVGf/+ITHe3BlIhUiLNttkATSXplc89A2lAaeTqjgqVkiRfUGyQiQ==
@@ -504,7 +504,7 @@
     tslib "^2.1.0"
     undici "6.19.7"
 
-"@firebase/component@0.6.6-vertexai-preview.8b70fc586", "@firebase/component@0.6.8":
+"@firebase/component@0.6.8":
   version "0.6.8"
   resolved "https://registry.npmjs.org/@firebase/component/-/component-0.6.8.tgz"
   integrity sha512-LcNvxGLLGjBwB0dJUsBGCej2fqAepWyBubs4jt1Tiuns7QLbXHuyObZ4aMeBjZjWx4m8g1LoVI9QFpSaq/k4/g==
@@ -630,7 +630,7 @@
     idb "7.1.1"
     tslib "^2.1.0"
 
-"@firebase/logger@0.4.1-vertexai-preview.8b70fc586", "@firebase/logger@0.4.2":
+"@firebase/logger@0.4.2":
   version "0.4.2"
   resolved "https://registry.npmjs.org/@firebase/logger/-/logger-0.4.2.tgz"
   integrity sha512-Q1VuA5M1Gjqrwom6I6NUU4lQXdo9IAQieXlujeHZWvRt1b7qQ0KwBaNAjgxG27jgF9/mUwsNmO8ptBCGVYhB0A==
@@ -746,7 +746,7 @@
     tslib "^2.1.0"
     undici "6.19.7"
 
-"@firebase/util@1.9.5-vertexai-preview.8b70fc586", "@firebase/util@1.9.7":
+"@firebase/util@1.9.7":
   version "1.9.7"
   resolved "https://registry.npmjs.org/@firebase/util/-/util-1.9.7.tgz"
   integrity sha512-fBVNH/8bRbYjqlbIhZ+lBtdAAS4WqZumx03K06/u7fJSpz1TGjEMm1ImvKD47w+xaFKIP2ori6z8BrbakRfjJA==
@@ -762,17 +762,6 @@
     "@firebase/component" "0.6.8"
     "@firebase/logger" "0.4.2"
     "@firebase/util" "1.9.7"
-    tslib "^2.1.0"
-
-"@firebase/vertexai@^0.0.1-vertexai-preview.8b70fc586":
-  version "0.0.1-vertexai-preview.8b70fc586"
-  resolved "https://registry.yarnpkg.com/@firebase/vertexai/-/vertexai-0.0.1-vertexai-preview.8b70fc586.tgz#f6b55f63a8bd00cea63400e703a9464efaa672f1"
-  integrity sha512-CTL75VjBnxFlX5zTUiFz8CiTqyc/g/k9WHEufKy9w6tl95FJsPkZL+XbpLxZVmgNDQSHvN6jJmoTr5ytuQNCLA==
-  dependencies:
-    "@firebase/app-check-interop-types" "0.3.1-vertexai-preview.8b70fc586"
-    "@firebase/component" "0.6.6-vertexai-preview.8b70fc586"
-    "@firebase/logger" "0.4.1-vertexai-preview.8b70fc586"
-    "@firebase/util" "1.9.5-vertexai-preview.8b70fc586"
     tslib "^2.1.0"
 
 "@firebase/webchannel-wrapper@1.0.1":

@@ -8,10 +8,11 @@ import Link from 'next/link'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-import MuiCard from '@mui/material/Card'
+
 // import CardContent from '@mui/material/CardContent'
 import Box from '@mui/material/Box'
 import { Theme, styled } from '@mui/material/styles'
+
 // import MuiFormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Custom Component Import
@@ -120,7 +121,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
       setValue('shopName', auth.selectedInstagramAccount.name || auth.selectedInstagramAccount.username)
       setValue('shopDescription', auth.selectedInstagramAccount.biography)
     }
-  }, [auth])
+  }, [auth, setValue])
 
   return (
     <Fragment>

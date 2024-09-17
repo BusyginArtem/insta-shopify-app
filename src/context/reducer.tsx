@@ -2,8 +2,11 @@ import { Actions, ActionTypes } from './actionTypes'
 import type { AuthValuesType } from './types'
 
 const authReducer = (state: AuthValuesType, action: Actions) => {
-  // console.log('%c state', 'color: green; font-weight: bold;', state)
-  // console.log('%c action', 'color: red; font-weight: bold;', action)
+  console.groupCollapsed(action.type)
+  console.log('%c state', 'color: green; font-weight: bold;', state)
+  console.log('%c action', 'color: green; font-weight: bold;', action)
+  console.groupEnd()
+
   switch (action.type) {
     case ActionTypes.SIGN_IN:
       return {
@@ -27,13 +30,27 @@ const authReducer = (state: AuthValuesType, action: Actions) => {
         loading: false
       }
 
-    case ActionTypes.LOGOUT:
+    case ActionTypes.SIGN_OUT:
+      return {
+        ...state,
+        loading: true
+      }
+
+    case ActionTypes.SIGN_OUT_SUCCESS:
       return {
         ...state,
         user: null,
         selectedInstagramAccount: null,
         facebookAccessToken: '',
-        shop: null
+        shop: null,
+        loading: false
+      }
+
+    case ActionTypes.SIGN_OUT_FAILURE:
+      return {
+        ...state,
+        error: action.payload,
+        loading: false
       }
 
     case ActionTypes.STORE_INSTAGRAM_ACCOUNT:
@@ -70,6 +87,12 @@ const authReducer = (state: AuthValuesType, action: Actions) => {
       return {
         ...state,
         loading: false
+      }
+
+    case ActionTypes.UPDATE_SHOP_ENTITY:
+      return {
+        ...state,
+        shop: action.payload
       }
 
     default:

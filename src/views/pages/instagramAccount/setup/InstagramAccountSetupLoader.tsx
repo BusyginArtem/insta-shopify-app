@@ -10,11 +10,7 @@ import { Theme } from '@mui/material/styles'
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
-const InstagramAccountSetupLoaderView = ({ loading, theme }: { loading: boolean; theme: Theme }) => {
-  if (!loading) {
-    return null
-  }
-
+const InstagramAccountSetupLoaderView = ({ theme }: { theme: Theme }) => {
   return (
     <Fragment>
       <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -6,6 +6,7 @@ import Head from 'next/head'
 import { Router } from 'next/router'
 import type { NextPage } from 'next'
 import type { AppProps } from 'next/app'
+
 // import Script from 'next/script'
 
 // ** Loader Import
@@ -28,6 +29,7 @@ import { Toaster } from 'react-hot-toast'
 
 // ** Component Imports
 import UserLayout from 'src/layouts/UserLayout'
+
 // import AclGuard from 'src/@core/components/auth/AclGuard'
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import AuthGuard from 'src/@core/components/auth/AuthGuard'
@@ -113,8 +115,6 @@ const App = (props: ExtendedAppProps) => {
 
   const guestGuard = Component.guestGuard ?? false
 
-  const aclAbilities = Component.acl ?? defaultACLObj
-
   const shopifyApiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY
 
   return (
@@ -130,7 +130,6 @@ const App = (props: ExtendedAppProps) => {
 
       <ui-nav-menu>
         <a href={APP_ROUTES.MAIN} rel='home' />
-        <a href={APP_ROUTES.LOGIN}>Login</a>
       </ui-nav-menu>
 
       {/* <Script src='https://cdn.shopify.com/shopifycloud/app-bridge.js' /> */}
