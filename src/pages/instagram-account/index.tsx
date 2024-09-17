@@ -18,7 +18,7 @@ const InstagramAccount = () => {
   useEffect(() => {
     if (!user?.uid && !loading) {
       // Todo fix error Abort fetching component for route: "/login"
-      // router.replace('/login')
+      router.replace('/login')
     }
   }, [user?.uid, loading])
 

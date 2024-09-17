@@ -1,18 +1,37 @@
-import { v4 } from 'uuid'
 import { useState } from 'react'
+import { v4 } from 'uuid'
+
+import { addDoc, collection, Firestore, Timestamp } from '@firebase/firestore'
+import { getDownloadURL, ref, uploadString } from '@firebase/storage'
 
 import InstagramAccountSetupLoaderView from './InstagramAccountSetupLoader'
 import InstagramAccountSetupFormView from './InstagramAccountSetupForm'
-import { addDoc, collection, Timestamp } from '@firebase/firestore'
-import { getDownloadURL, ref, uploadString } from '@firebase/storage';
 
-const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, storage }) => {
+// ** Types
+import type { Theme } from '@mui/material'
+import type FacebookService from 'src/services/facebook'
+import type { GenerativeModel, VertexAI } from '@firebase/vertexai'
+import type { AuthValuesType, InstagramPostType, InstagramSetupFormValues, ProductType, Shop } from 'src/context/types'
+
+type Props = {
+  theme: Theme
+  auth: AuthValuesType
+  facebook: FacebookService
+  firestore: Firestore
+  vertex: {
+    vertexAI: VertexAI
+    model: GenerativeModel
+  }
+  storage: any
+}
+
+const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, storage }: Props) => {
   const [loading, setLoading] = useState(false)
 
-  const formatProduct = (igPost, shop) => {
+  const formatProduct = (igPost: InstagramPostType, shop: Shop): ProductType => {
     let type = null
     let thumbnail = null
-    let images = []
+    let images: string[] = []
     let videoUrl = null
 
     switch (igPost.media_type) {
@@ -38,8 +57,8 @@ const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, s
 
     return {
       instagramId: igPost.id,
-      shopOwnerId: auth.user.uid,
-      shopId: shop.id.toString(),
+      shopOwnerId: auth.user?.uid || '',
+      shopId: shop.id ? shop.id.toString() : '',
       type,
       status: 'draft',
       title: null,
@@ -57,18 +76,20 @@ const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, s
       videoUrl,
       variants: [],
       similar: [],
+      category: null,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
     }
   }
 
-  const saveProducts = async products => {
+  // TODO fix
+  const saveProducts = async (products: ProductType[]) => {
     for (const product of products) {
       await addDoc(collection(firestore, 'products'), product)
     }
   }
 
-  async function getImageBase64(url) {
+  async function getImageBase64(url: string) {
     // Fetch the image
     const response = await fetch(url)
 
@@ -79,11 +100,11 @@ const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, s
     return `${base64String}`
   }
 
-  async function uploadImage(imageUrl, shopId) {
+  async function uploadImage(imageUrl: string, shopId: string) {
     const filename = `${v4()}.jpg`
-    const productImagesRef = ref(storage, `products`);
-    const productImagesShopRef = ref(productImagesRef, `${shopId}`);
-    const productImageRef = ref(productImagesShopRef, `${filename}`);
+    const productImagesRef = ref(storage, `products`)
+    const productImagesShopRef = ref(productImagesRef, `${shopId}`)
+    const productImageRef = ref(productImagesShopRef, `${filename}`)
     const imageBase64 = await getImageBase64(imageUrl)
 
     const productFileSnapshot = await uploadString(productImageRef, imageBase64, 'base64', {
@@ -95,23 +116,34 @@ const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, s
     return productImageUrl
   }
 
-  const onSubmit = data => {
+  const onSubmit = (data: InstagramSetupFormValues) => {
     setLoading(true)
 
-    auth.setup(data, async shop => {
-      const posts = await facebook.getInstagramPosts(auth.selectedInstagramAccount.id.toString())
-      const formatedProducts = posts.map(post => formatProduct(post, shop))
+    auth.onHandleSetUp(data, async (shop: Shop) => {
+      if (!auth.selectedInstagramAccount?.id) {
+        return
+      }
 
-      for (const formatedProduct of formatedProducts) {
-        const imageBase64 = await getImageBase64(formatedProduct.thumbnail)
+      const posts: InstagramPostType[] = await facebook.getInstagramPosts(auth.selectedInstagramAccount.id.toString())
+      const formattedProducts = posts.map(post => formatProduct(post, shop))
+      console.log('%c posts', 'color: green; font-weight: bold;', posts)
+      console.log('%c formattedProducts', 'color: red; font-weight: bold;', formattedProducts)
+      for (const formattedProduct of formattedProducts) {
+        if (!formattedProduct?.thumbnail) {
+          continue
+        }
+
+        const imageBase64 = await getImageBase64(formattedProduct.thumbnail)
 
         // upload thumbnail
-        formatedProduct.thumbnail = await uploadImage(formatedProduct.thumbnail, shop.id)
+        formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shop.id!)
 
-        if (formatedProduct.images) {
-          formatedProduct.images = await Promise.all(formatedProduct.images.map(async (image) => {
-            return await uploadImage(image, shop.id)
-          }))
+        if (formattedProduct.images) {
+          formattedProduct.images = await Promise.all(
+            formattedProduct.images.map(async image => {
+              return await uploadImage(image, shop.id!)
+            })
+          )
         }
 
         const prompt =
@@ -132,14 +164,14 @@ const InstagramAccountSetupView = ({ auth, theme, facebook, firestore, vertex, s
 
         const jsonData = JSON.parse(text.replace('```json', '').replace('```', ''))
 
-        formatedProduct.title = jsonData.title || formatedProduct.title
-        formatedProduct.description = jsonData.description || formatedProduct.description
-        formatedProduct.category = jsonData.category || formatedProduct.category
-        formatedProduct.metaTitle = jsonData.meta_title || formatedProduct.metaTitle
-        formatedProduct.metaDescription = jsonData.meta_description || formatedProduct.metaDescription
+        formattedProduct.title = jsonData.title || formattedProduct.title
+        formattedProduct.description = jsonData.description || formattedProduct.description
+        formattedProduct.category = jsonData.category || formattedProduct.category
+        formattedProduct.metaTitle = jsonData.meta_title || formattedProduct.metaTitle
+        formattedProduct.metaDescription = jsonData.meta_description || formattedProduct.metaDescription
       }
 
-      await saveProducts(formatedProducts)
+      await saveProducts(formattedProducts)
 
       setLoading(false)
     })

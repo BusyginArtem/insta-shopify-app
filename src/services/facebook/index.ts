@@ -1,9 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { InstagramAccountType } from 'src/context/types'
+import { InstagramAccountType, InstagramPostType } from 'src/context/types'
 
 export interface IFacebookService {
   getInstagramAccounts: () => Promise<InstagramAccountType[]>
-  getInstagramPosts: (instagramId: string) => Promise<string[]>
+  getInstagramPosts: (instagramId: string) => Promise<InstagramPostType[]>
   accessToken: string
   httpClient: AxiosInstance
 }
@@ -42,7 +42,7 @@ class FacebookService implements IFacebookService {
     return igAccounts
   }
 
-  async getInstagramPosts(instagramId: string): Promise<string[]> {
+  async getInstagramPosts(instagramId: string): Promise<InstagramPostType[]> {
     let media = await this.httpClient.get(
       `/${instagramId}/media?fields=id,media_type,media_url,permalink,thumbnail_url,media_product_type,timestamp,caption&access_token=${this.accessToken}`
     )

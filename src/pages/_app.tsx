@@ -59,6 +59,7 @@ import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Global css styles
 import '../../styles/globals.css'
+import { APP_ROUTES } from 'src/configs/constants'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -128,8 +129,8 @@ const App = (props: ExtendedAppProps) => {
       </Head>
 
       <ui-nav-menu>
-        <a href='/' rel='home' />
-        <a href='/login'>Login</a>
+        <a href={APP_ROUTES.MAIN} rel='home' />
+        <a href={APP_ROUTES.LOGIN}>Login</a>
       </ui-nav-menu>
 
       {/* <Script src='https://cdn.shopify.com/shopifycloud/app-bridge.js' /> */}

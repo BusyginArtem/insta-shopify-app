@@ -1,5 +1,5 @@
 // ** React Imports
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -9,10 +9,10 @@ import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import MuiCard from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
+// import CardContent from '@mui/material/CardContent'
 import Box from '@mui/material/Box'
-import { styled, useTheme } from '@mui/material/styles'
-import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import { Theme, styled } from '@mui/material/styles'
+// import MuiFormControlLabel from '@mui/material/FormControlLabel'
 
 // ** Custom Component Import
 import CustomTextField from 'src/@core/components/mui/text-field'
@@ -23,64 +23,68 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Hooks
-import { useAuth } from 'src/hooks/useAuth'
+// import useAuth from 'src/hooks/useAuth'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
+// ** Types
+import type { AuthValuesType, InstagramSetupFormValues } from 'src/context/types'
+import { APP_ROUTES } from 'src/configs/constants'
+
 // ** Layout Import
-import BlankLayout from 'src/@core/layouts/BlankLayout'
+// import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
-import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
-import AuthIllustrationWrapper from 'src/views/pages/auth/AuthIllustrationWrapper'
+// import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
+// import AuthIllustrationWrapper from 'src/views/pages/auth/AuthIllustrationWrapper'
 
 // ** Styled Components
-const LoginIllustration = styled('img')(({ theme }) => ({
-  zIndex: 2,
-  maxHeight: 680,
-  marginTop: theme.spacing(12),
-  marginBottom: theme.spacing(12),
-  [theme.breakpoints.down(1540)]: {
-    maxHeight: 550
-  },
-  [theme.breakpoints.down('lg')]: {
-    maxHeight: 500
-  }
-}))
+// const LoginIllustration = styled('img')(({ theme }) => ({
+//   zIndex: 2,
+//   maxHeight: 680,
+//   marginTop: theme.spacing(12),
+//   marginBottom: theme.spacing(12),
+//   [theme.breakpoints.down(1540)]: {
+//     maxHeight: 550
+//   },
+//   [theme.breakpoints.down('lg')]: {
+//     maxHeight: 500
+//   }
+// }))
 
-const RightWrapper = styled(Box)(({ theme }) => ({
-  width: '100%',
-  [theme.breakpoints.up('md')]: {
-    maxWidth: 450
-  },
-  [theme.breakpoints.up('lg')]: {
-    maxWidth: 600
-  },
-  [theme.breakpoints.up('xl')]: {
-    maxWidth: 750
-  }
-}))
+// const RightWrapper = styled(Box)(({ theme }) => ({
+//   width: '100%',
+//   [theme.breakpoints.up('md')]: {
+//     maxWidth: 450
+//   },
+//   [theme.breakpoints.up('lg')]: {
+//     maxWidth: 600
+//   },
+//   [theme.breakpoints.up('xl')]: {
+//     maxWidth: 750
+//   }
+// }))
 
-const Card = styled(MuiCard)(({ theme }) => ({
-  [theme.breakpoints.up('sm')]: { width: '25rem' }
-}))
+// const Card = styled(MuiCard)(({ theme }) => ({
+//   [theme.breakpoints.up('sm')]: { width: '25rem' }
+// }))
 
 const LinkStyled = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
   color: `${theme.palette.primary.main} !important`
 }))
 
-const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
-  '& .MuiFormControlLabel-label': {
-    color: theme.palette.text.secondary
-  }
-}))
+// const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
+//   '& .MuiFormControlLabel-label': {
+//     color: theme.palette.text.secondary
+//   }
+// }))
 
 const schema = yup.object().shape({
   email: yup.string().email().min(1).required(),
   shopName: yup.string().min(1).required(),
-  shopDescription: yup.string().min(1).required(),
+  shopDescription: yup.string().min(1).required()
 })
 
 const defaultValues = {
@@ -89,21 +93,26 @@ const defaultValues = {
   shopDescription: ''
 }
 
-const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
+type Props = {
+  theme: Theme
+  auth: AuthValuesType
+  onSubmit: (data: InstagramSetupFormValues) => void
+}
+
+const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors },
-    setValue,
-  } = useForm({
+    setValue
+  } = useForm<InstagramSetupFormValues>({
     defaultValues,
     mode: 'onBlur',
     resolver: yupResolver(schema)
   })
 
   useEffect(() => {
-    if (auth.user) {
+    if (auth?.user?.email) {
       setValue('email', auth.user.email)
     }
 
@@ -197,7 +206,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
           />
         </Box>
         <Box sx={{ mb: 4 }}>
-        <Controller
+          <Controller
             name='shopDescription'
             control={control}
             rules={{ required: true }}
@@ -207,7 +216,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
                 multiline
                 rows={4}
                 label='Description'
-                type="textarea"
+                type='textarea'
                 value={value}
                 onBlur={onBlur}
                 onChange={onChange}
@@ -226,9 +235,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}
-        >
-          
-        </Box>
+        ></Box>
         <Button fullWidth type='submit' variant='contained' sx={{ mb: 4 }}>
           Continue
         </Button>
@@ -243,7 +250,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
           or
         </Divider>
         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Typography href='/instagram-account' component={LinkStyled}>
+          <Typography href={APP_ROUTES.INSTAGRAM_ACCOUNT} component={LinkStyled}>
             Choose another account
           </Typography>
         </Box>
@@ -253,5 +260,3 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }) => {
 }
 
 export default InstagramAccountSetupFormView
-
-

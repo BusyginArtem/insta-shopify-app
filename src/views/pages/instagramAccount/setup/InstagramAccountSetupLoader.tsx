@@ -5,12 +5,12 @@ import { Fragment } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { useTheme } from '@mui/material/styles'
+import { Theme } from '@mui/material/styles'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
-const InstagramAccountSetupLoaderView = ({ loading, theme }) => {
+const InstagramAccountSetupLoaderView = ({ loading, theme }: { loading: boolean; theme: Theme }) => {
   if (!loading) {
     return null
   }
@@ -54,10 +54,14 @@ const InstagramAccountSetupLoaderView = ({ loading, theme }) => {
         <Typography variant='h4' sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {`Don't close or refresh the page!`}
         </Typography>
-        <Typography sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography
+          sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           Please wait while we setup your shop.
         </Typography>
-        <Typography sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography
+          sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           Usualy it takes from 2 to 5 minutes.
         </Typography>
       </Box>
@@ -69,5 +73,3 @@ const InstagramAccountSetupLoaderView = ({ loading, theme }) => {
 }
 
 export default InstagramAccountSetupLoaderView
-
-

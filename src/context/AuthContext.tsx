@@ -2,7 +2,14 @@
 import { createContext, useEffect, ReactNode, useReducer } from 'react'
 
 // ** Third party imports
-import { FacebookAuthProvider, onAuthStateChanged, signInWithCredential, signInWithPopup } from '@firebase/auth'
+import {
+  FacebookAuthProvider,
+  OAuthCredential,
+  UserCredential,
+  onAuthStateChanged,
+  signInWithCredential,
+  signInWithPopup
+} from '@firebase/auth'
 import { getDoc, setDoc, doc } from '@firebase/firestore'
 import toast from 'react-hot-toast'
 
@@ -20,9 +27,10 @@ import useFirebaseFirestore from 'src/hooks/useFirebaseFirestore'
 import authConfig from 'src/configs/auth'
 
 // ** Types & Reducer
-import type { AuthValuesType, InstagramAccountType, Shop } from './types'
+import type { AuthValuesType, InstagramAccountType, InstagramSetupFormValues, Shop } from './types'
 import authReducer from './reducer'
 import { ActionTypes } from './actionTypes'
+import { APP_ROUTES } from 'src/configs/constants'
 
 const COLLECTION_SHOPS = 'shops'
 
@@ -39,8 +47,8 @@ const initialState: AuthValuesType = {
   // setShop: () => null,
   // getShop: () => null,
   // setLoading: () => Boolean,
-  setup: () => Promise.resolve(),
-  onLogin: () => {},
+  onHandleSetUp: () => Promise.resolve(),
+  onLogin: () => Promise.resolve(),
   onLogout: () => {},
   onSelectInstagramAccount: () => {}
 }
@@ -68,7 +76,7 @@ const AuthProvider = ({ children }: Props) => {
         // setSelectedInstagramAccount(JSON.parse(instagramAccount))
         dispatch({ type: ActionTypes.STORE_INSTAGRAM_ACCOUNT, payload: JSON.parse(instagramAccount) })
       } else {
-        router.replace('/instagram-account')
+        router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,9 +93,9 @@ const AuthProvider = ({ children }: Props) => {
           if (userShop) {
             dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: userShop })
 
-            router.replace('/')
+            router.replace(APP_ROUTES.MAIN)
           } else {
-            router.replace('/instagram-account/setup')
+            router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
           }
         } catch (error) {
           console.log(error)
@@ -149,30 +157,29 @@ const AuthProvider = ({ children }: Props) => {
     }
   }, [firebaseAuth.auth])
   // TODO DONE
-  const handleLogin = () => {
+  const handleLogin = async () => {
     dispatch({ type: ActionTypes.SIGN_IN })
 
-    signInWithPopup(firebaseAuth.auth, firebaseAuth.fbProvider)
-      .then(async result => {
-        const credential = FacebookAuthProvider.credentialFromResult(result)
-        const accessToken = credential?.accessToken
+    try {
+      const result: UserCredential = await signInWithPopup(firebaseAuth.auth, firebaseAuth.fbProvider)
+      const credential: OAuthCredential | null = FacebookAuthProvider.credentialFromResult(result)
+      const accessToken = credential?.accessToken
 
-        if (!accessToken) {
-          return
-        }
+      if (!accessToken) {
+        return
+      }
 
-        dispatch({
-          type: ActionTypes.SIGN_IN_SUCCESS,
-          payload: { facebookAccessToken: accessToken, user: result.user }
-        })
-
-        window.localStorage.setItem(authConfig.storageTokenKeyName, accessToken)
+      dispatch({
+        type: ActionTypes.SIGN_IN_SUCCESS,
+        payload: { facebookAccessToken: accessToken, user: result.user }
       })
-      .catch(err => {
-        console.error(err)
-        toast.error(`Authorization failed`)
-        dispatch({ type: ActionTypes.SIGN_IN_FAILURE, payload: err })
-      })
+
+      window.localStorage.setItem(authConfig.storageTokenKeyName, accessToken)
+    } catch (error) {
+      console.error(error as Error)
+      toast.error(`Authorization failed`)
+      dispatch({ type: ActionTypes.SIGN_IN_FAILURE, payload: error as Error })
+    }
   }
   // TODO DONE
   const handleLogout = () => {
@@ -191,14 +198,23 @@ const AuthProvider = ({ children }: Props) => {
     }
 
     const shop = await setDoc(doc(firestore, COLLECTION_SHOPS, state.selectedInstagramAccount.id.toString()), data)
-
+    console.log('%c createShop -> shop', 'color: green; font-weight: bold;', shop)
     return shop
   }
 
   const getShop = async (shopId: string) => {
     const shop = await getDoc(doc(firestore, COLLECTION_SHOPS, shopId))
+    console.log('%c getShop -> shop', 'color: red; font-weight: bold;', shop)
+    if (shop.exists()) {
+      const data = shop.data() as Shop
 
-    return shop.exists() ? { id: shop.id, ...shop.data() } : null
+      return {
+        id: shop.id,
+        ...data
+      }
+    }
+
+    return null
   }
 
   const getShopByUserId = async () => {
@@ -207,15 +223,13 @@ const AuthProvider = ({ children }: Props) => {
         return null
       }
 
-      const shop = await getShop(state.selectedInstagramAccount.id.toString())
-      console.log('%c shop', 'color: green; font-weight: bold;', shop)
-      return shop || null
+      return await getShop(state.selectedInstagramAccount.id.toString())
     } catch (error) {
-      console.log('%c error', 'color: red; font-weight: bold;', error)
+      console.error('%c error', error)
     }
   }
 
-  const updateShop = async (shopId: string, data: Shop) => {
+  const updateShop = async (shopId: string, data: Partial<Shop>) => {
     const shopsRef = doc(firestore, COLLECTION_SHOPS, shopId)
     const shop = await setDoc(shopsRef, data, { merge: true })
 
@@ -228,11 +242,75 @@ const AuthProvider = ({ children }: Props) => {
     dispatch({ type: ActionTypes.STORE_INSTAGRAM_ACCOUNT, payload: account })
   }
 
+  const handleSetUp = async (data: InstagramSetupFormValues, callback: (shop: Shop) => Promise<void>) => {
+    try {
+      console.log(
+        '%c state.selectedInstagramAccount?.id',
+        'color: green; font-weight: bold;',
+        state.selectedInstagramAccount?.id
+      )
+      if (!state.selectedInstagramAccount?.id) {
+        return
+      }
+      console.log('%c state.user?.uid', 'color: green; font-weight: bold;', state.user?.uid)
+      if (!state.user?.uid) {
+        return
+      }
+
+      console.log('<<<<<<<<<<<<<<<<<, handleSetUp >>>>>>>>>>>>>>')
+      let shop = await getShop(state.selectedInstagramAccount.id.toString())
+      console.log('%c handleSetUp -> shop', 'color: red; font-weight: bold;', shop)
+      if (!shop) {
+        // TODO update to one request
+        await createShop({
+          ownerId: state.user?.uid || '',
+          shopName: data.shopName,
+          shopDescription: data.shopDescription,
+          shopEmail: data.email,
+          shopLogo: state.selectedInstagramAccount.profile_picture_url,
+          shopInstagramId: state.selectedInstagramAccount.id,
+          shopInstagramUsername: state.selectedInstagramAccount.username,
+          initialProductsSyncStatus: false,
+          productsScheduleSyncStatus: 0,
+          shopDomain: null,
+          shopCustomDomain: null,
+          initialShopDeployStatus: 0,
+          scheduleShopDeployStatus: 0
+        })
+
+        shop = await getShop(state.selectedInstagramAccount.id.toString())
+      }
+      console.log('%c handleSetUp -> shop', 'color: green; font-weight: bold;', shop)
+      // setShop(shop)
+
+      if (shop) {
+        await callback(shop)
+        await updateShop(shop.id, {
+          initialProductsSyncStatus: true
+        })
+      }
+
+      // await callback(shop)
+      // await updateShop(shop.id, {
+      //   initialProductsSyncStatus: true
+      // })
+
+      // shop = await getShop(selectedInstagramAccount.id.toString())
+
+      // setShop(shop)
+
+      router.replace('/')
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   const values = {
     ...state,
     onLogin: handleLogin,
     onLogout: handleLogout,
-    onSelectInstagramAccount: handleSetSelectedInstagramAccount
+    onSelectInstagramAccount: handleSetSelectedInstagramAccount,
+    onHandleSetUp: handleSetUp
   }
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>
