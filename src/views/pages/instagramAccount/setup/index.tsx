@@ -1,3 +1,6 @@
+// ** React
+import { useState } from 'react'
+
 // ** Components
 import InstagramAccountSetupLoaderView from './InstagramAccountSetupLoader'
 import InstagramAccountSetupFormView from './InstagramAccountSetupForm'
@@ -14,11 +17,17 @@ type Props = {
 }
 
 const InstagramAccountSetupView = ({ theme }: Props) => {
+  const [loading, setLoading] = useState(false)
+
   const auth = useAuth()
-  const { loading, onHandleSetUp } = auth
-  console.log('%c loading', 'color: green; font-weight: bold;', loading)
-  const onSubmit = (data: InstagramSetupFormValues) => {
-    onHandleSetUp(data)
+  const { onHandleSetUp } = auth
+
+  const onSubmit = async (data: InstagramSetupFormValues) => {
+    setLoading(true)
+
+    await onHandleSetUp(data)
+
+    setLoading(false)
   }
 
   return loading ? (

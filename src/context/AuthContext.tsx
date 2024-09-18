@@ -20,9 +20,6 @@ import toast from 'react-hot-toast'
 // ** Next Import
 import { useRouter } from 'next/router'
 
-// ** Axios
-// import axios from 'axios'
-
 // ** Hooks
 import useFirebaseAuth from 'src/hooks/useFirebaseAuth'
 import useFirebaseFirestore from 'src/hooks/useFirebaseFirestore'
@@ -189,9 +186,10 @@ const AuthProvider = ({ children }: Props) => {
           }
 
           toast.error(`Authorization failed`)
-        } finally {
-          dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
         }
+        // finally {
+        //   dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
+        // }
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -495,9 +493,10 @@ const AuthProvider = ({ children }: Props) => {
       } else {
         console.log(error)
       }
-    } finally {
-      dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
     }
+    // finally {
+    //   dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
+    // }
   }
 
   const values = {

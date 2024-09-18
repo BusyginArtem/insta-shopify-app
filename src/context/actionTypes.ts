@@ -17,7 +17,7 @@ export enum ActionTypes {
   STORE_SHOP_ENTITY = 'STORE_SHOP_ENTITY',
   STORE_SHOP_ENTITY_SUCCESS = 'STORE_SHOP_ENTITY_SUCCESS',
   STORE_SHOP_ENTITY_FAILURE = 'STORE_SHOP_ENTITY_FAILURE',
-  STORE_SHOP_ENTITY_PROCESSED = 'STORE_SHOP_ENTITY_PROCESSED',
+  // STORE_SHOP_ENTITY_PROCESSED = 'STORE_SHOP_ENTITY_PROCESSED',
   UPDATE_SHOP_ENTITY = 'UPDATE_SHOP_ENTITY'
 }
 
@@ -36,7 +36,6 @@ type StoreUserAccount = { type: ActionTypes.STORE_USER_ACCOUNT; payload: User }
 type StoreShopEntity = { type: ActionTypes.STORE_SHOP_ENTITY }
 type StoreShopEntitySuccess = { type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS; payload: Shop }
 type StoreShopEntityFailure = { type: ActionTypes.STORE_SHOP_ENTITY_FAILURE; payload: Error }
-type StoreShopEntityProcessed = { type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED }
 type UpdateShopEntity = { type: ActionTypes.UPDATE_SHOP_ENTITY; payload: Shop }
 
 export type Actions =
@@ -51,5 +50,4 @@ export type Actions =
   | StoreShopEntity
   | StoreShopEntitySuccess
   | StoreShopEntityFailure
-  | StoreShopEntityProcessed
   | UpdateShopEntity

@@ -66,10 +66,7 @@ const authReducer = (state: AuthValuesType, action: Actions) => {
       }
 
     case ActionTypes.STORE_SHOP_ENTITY:
-      return {
-        ...state,
-        loading: true
-      }
+      return state
 
     case ActionTypes.STORE_SHOP_ENTITY_SUCCESS:
       return {
@@ -81,12 +78,6 @@ const authReducer = (state: AuthValuesType, action: Actions) => {
       return {
         ...state,
         error: action.payload
-      }
-
-    case ActionTypes.STORE_SHOP_ENTITY_PROCESSED:
-      return {
-        ...state,
-        loading: false
       }
 
     case ActionTypes.UPDATE_SHOP_ENTITY:
