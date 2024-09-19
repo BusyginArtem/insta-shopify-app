@@ -8,12 +8,10 @@ import Link from 'next/link'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
-
-// import CardContent from '@mui/material/CardContent'
 import Box from '@mui/material/Box'
 import { Theme, styled } from '@mui/material/styles'
-
-// import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import { Checkbox } from '@mui/material'
 
 // ** Custom Component Import
 import CustomTextField from 'src/@core/components/mui/text-field'
@@ -23,75 +21,31 @@ import * as yup from 'yup'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-// ** Hooks
-// import useAuth from 'src/hooks/useAuth'
-
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
 // ** Types
-import type { AuthValuesType, InstagramSetupFormValues } from 'src/context/types'
+import type { AuthValuesType, InstagramSetupFormValues } from 'src/types'
+
+// ** Constants
 import { APP_ROUTES } from 'src/configs/constants'
-
-// ** Layout Import
-// import BlankLayout from 'src/@core/layouts/BlankLayout'
-
-// ** Demo Imports
-// import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
-// import AuthIllustrationWrapper from 'src/views/pages/auth/AuthIllustrationWrapper'
-
-// ** Styled Components
-// const LoginIllustration = styled('img')(({ theme }) => ({
-//   zIndex: 2,
-//   maxHeight: 680,
-//   marginTop: theme.spacing(12),
-//   marginBottom: theme.spacing(12),
-//   [theme.breakpoints.down(1540)]: {
-//     maxHeight: 550
-//   },
-//   [theme.breakpoints.down('lg')]: {
-//     maxHeight: 500
-//   }
-// }))
-
-// const RightWrapper = styled(Box)(({ theme }) => ({
-//   width: '100%',
-//   [theme.breakpoints.up('md')]: {
-//     maxWidth: 450
-//   },
-//   [theme.breakpoints.up('lg')]: {
-//     maxWidth: 600
-//   },
-//   [theme.breakpoints.up('xl')]: {
-//     maxWidth: 750
-//   }
-// }))
-
-// const Card = styled(MuiCard)(({ theme }) => ({
-//   [theme.breakpoints.up('sm')]: { width: '25rem' }
-// }))
 
 const LinkStyled = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
   color: `${theme.palette.primary.main} !important`
 }))
 
-// const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
-//   '& .MuiFormControlLabel-label': {
-//     color: theme.palette.text.secondary
-//   }
-// }))
-
 const schema = yup.object().shape({
-  email: yup.string().email().min(1).required(),
-  shopName: yup.string().min(1).required(),
-  shopDescription: yup.string().min(1).required()
+  email: yup.string().email().required('Shop email is required!'),
+  shopName: yup.string().required('Shop name is required!'),
+  shopDescription: yup.string().required('Shop description is required!')
 })
 
 const defaultValues = {
   email: '',
   shopName: '',
-  shopDescription: ''
+  shopDescription: '',
+  isVertaxEnabled: false
 }
 
 type Props = {
@@ -119,7 +73,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
 
     if (auth.selectedInstagramAccount) {
       setValue('shopName', auth.selectedInstagramAccount.name || auth.selectedInstagramAccount.username)
-      setValue('shopDescription', auth.selectedInstagramAccount.biography)
+      setValue('shopDescription', auth.selectedInstagramAccount.biography || '')
     }
   }, [auth, setValue])
 
@@ -160,70 +114,78 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
       </Box>
       <Box sx={{ mb: 6 }}>
         <Typography variant='h4' sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {`Your shop is almost ready!`}
+          Your shop is almost ready!
         </Typography>
         <Typography sx={{ color: 'text.secondary' }}>
           Please provide us with additional information about your shop
         </Typography>
       </Box>
       <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2 }}>
           <Controller
             name='email'
             control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange, onBlur } }) => (
+            render={({ field }) => (
               <CustomTextField
                 autoFocus
                 fullWidth
                 label='Email'
-                value={value}
-                onBlur={onBlur}
-                onChange={onChange}
                 placeholder='Enter your Email'
                 error={Boolean(errors.email)}
                 {...(errors.email && { helperText: errors.email.message })}
+                {...field}
               />
             )}
           />
         </Box>
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2 }}>
           <Controller
             name='shopName'
             control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange, onBlur } }) => (
+            render={({ field }) => (
               <CustomTextField
                 fullWidth
                 label='Shop name'
-                value={value}
-                onBlur={onBlur}
-                onChange={onChange}
                 placeholder='Enter your shop name'
                 error={Boolean(errors.shopName)}
                 {...(errors.shopName && { helperText: errors.shopName.message })}
+                {...field}
               />
             )}
           />
         </Box>
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2 }}>
           <Controller
             name='shopDescription'
             control={control}
-            rules={{ required: true }}
-            render={({ field: { value, onChange, onBlur } }) => (
+            render={({ field }) => (
               <CustomTextField
                 fullWidth
                 multiline
                 rows={4}
                 label='Description'
                 type='textarea'
-                value={value}
-                onBlur={onBlur}
-                onChange={onChange}
                 placeholder='Enter description of your shop'
                 error={Boolean(errors.shopDescription)}
                 {...(errors.shopDescription && { helperText: errors.shopDescription.message })}
+                {...field}
+              />
+            )}
+          />
+        </Box>
+        <Box sx={{ mb: 2 }}>
+          <Controller
+            name='isVertaxEnabled'
+            control={control}
+            render={({ field: { value, ...params } }) => (
+              <FormControlLabel
+                control={<Checkbox size='small' checked={value} sx={{ mb: -2, mt: -2.5, ml: -2.75 }} {...params} />}
+                label='Use Vertex AI to generate products content.'
+                componentsProps={{
+                  typography: {
+                    variant: 'body2'
+                  }
+                }}
               />
             )}
           />

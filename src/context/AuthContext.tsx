@@ -9,7 +9,8 @@ import {
   UserCredential,
   onAuthStateChanged,
   signInWithCredential,
-  signInWithPopup
+  signInWithPopup,
+  signOut
 } from '@firebase/auth'
 import { getDoc, setDoc, doc, addDoc, collection, Timestamp } from '@firebase/firestore'
 import { getDownloadURL, ref, uploadString } from '@firebase/storage'
@@ -37,13 +38,15 @@ import type {
   AuthValuesType,
   InstagramPostType,
   InstagramAccountType,
-  InstagramSetupFormValues
-} from './types'
+  InstagramSetupFormValues,
+  GeneratedContent
+} from '../types'
 import authReducer from './reducer'
 import { ActionTypes } from './actionTypes'
 
 // ** Constants
 import { APP_ROUTES } from 'src/configs/constants'
+import { GenerateContentRequest, InlineDataPart, Part, TextPart } from 'firebase/vertexai-preview'
 
 const COLLECTION_SHOPS = 'shops'
 const COLLECTION_PRODUCTS = 'products'
@@ -174,7 +177,7 @@ const AuthProvider = ({ children }: Props) => {
           if (userShop) {
             dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: userShop })
 
-            router.replace(APP_ROUTES.MAIN)
+            // router.replace(APP_ROUTES.MAIN)
           } else {
             router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
           }
@@ -233,7 +236,6 @@ const AuthProvider = ({ children }: Props) => {
     const unsubscribe = onAuthStateChanged(firebaseAuth.auth, firebaseUser => {
       if (firebaseUser) {
         dispatch({ type: ActionTypes.STORE_USER_ACCOUNT, payload: firebaseUser })
-        console.log('onAuthStateChanged', firebaseUser)
       }
     })
 
@@ -272,9 +274,11 @@ const AuthProvider = ({ children }: Props) => {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
       dispatch({ type: ActionTypes.SIGN_OUT })
+
+      await signOut(firebaseAuth.auth)
 
       // window.localStorage.removeItem(authConfig.storageUserDataKeyName)
       window.localStorage.removeItem(authConfig.storageTokenKeyName)
@@ -282,7 +286,7 @@ const AuthProvider = ({ children }: Props) => {
 
       dispatch({ type: ActionTypes.SIGN_OUT_SUCCESS })
 
-      router.push('/login')
+      router.push(APP_ROUTES.LOGIN)
     } catch (error) {
       if (isError(error)) {
         dispatch({ type: ActionTypes.SIGN_OUT_FAILURE, payload: error })
@@ -389,55 +393,82 @@ const AuthProvider = ({ children }: Props) => {
 
     try {
       const posts: InstagramPostType[] = await facebook.getInstagramPosts(state.selectedInstagramAccount.id.toString())
-      const formattedProducts = posts.map(post => formatProduct(post, shopId, state.user?.uid!))
+      let formattedProducts = posts.map(post => formatProduct(post, shopId, state.user?.uid!))
 
-      for (const formattedProduct of formattedProducts) {
-        if (!formattedProduct?.thumbnail) {
-          continue
-        }
+      formattedProducts = await Promise.all(
+        formattedProducts.map(async formattedProduct => {
+          if (formattedProduct.thumbnail) {
+            formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
+            // upload thumbnail
+            formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
+          }
 
-        const imageBase64 = await getImageBase64(formattedProduct.thumbnail)
+          if (formattedProduct.images) {
+            formattedProduct.images = await Promise.all(
+              formattedProduct.images.map(async image => {
+                return await uploadImage(image, shopId)
+              })
+            )
+          }
 
-        // upload thumbnail
-        formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
+          return formattedProduct
+        })
+      )
 
-        if (formattedProduct.images) {
-          formattedProduct.images = await Promise.all(
-            formattedProduct.images.map(async image => {
-              return await uploadImage(image, shopId)
-            })
-          )
-        }
-
-        if (shop.isVertaxEnabled) {
-          const prompt =
-            'I have an image of product. You need to understand what product is it. Write me a title, description, meta title, meta description and category of product for publishing this product on my online store. Choose mo relevant category from list that I provide. Provide me with valid json format without any other data. '
-
-          const result = await vertex.model.generateContent([
-            prompt,
-            {
-              inlineData: {
-                data: imageBase64,
-                mimeType: 'image/jpeg'
-              }
-            }
-          ])
-
-          const response = result.response
-          const text = response.text()
-          const generatedData = JSON.parse(text.replace('```json', '').replace('```', ''))
-
-          formattedProduct.title = generatedData.title || formattedProduct.title
-          formattedProduct.description = generatedData.description || formattedProduct.description
-          formattedProduct.category = generatedData.category || formattedProduct.category
-          formattedProduct.metaTitle = generatedData.meta_title || formattedProduct.metaTitle
-          formattedProduct.metaDescription = generatedData.meta_description || formattedProduct.metaDescription
-        }
+      if (!formattedProducts.length) {
+        return Promise.resolve('Instagram posts not found!')
       }
+
+      const parts: (InlineDataPart | TextPart)[] = [
+        ...formattedProducts.map(fp => ({
+          inlineData: {
+            data: fp.thumbnailBase64 as string,
+            mimeType: 'image/jpeg'
+          }
+        })),
+        {
+          text: `
+            I provide you with images of products. For each image you need to focus and understood what product on the image. Write me a title, description, meta title,
+            meta description and category for each product for publishing this product on my online store.
+            Choose mo relevant category from list that I provide.
+            Provide me with valid json array format without any other data for each product and save product's order that I sent.
+          `
+        }
+      ]
+
+      const requestToVertexAI = {
+        contents: [
+          {
+            role: 'user',
+            parts
+          }
+        ]
+      }
+
+      const result = await vertex.model.generateContent(requestToVertexAI as GenerateContentRequest)
+      let parsedContent: GeneratedContent = []
+
+      if (result.response.candidates?.length) {
+        parsedContent = JSON.parse(
+          result.response.candidates[0].content.parts[0].text?.replace('```json', '').replace('```', '')!
+        )
+      }
+
+      formattedProducts = formattedProducts.map((fp, fpIndex) => {
+        delete fp.thumbnailBase64
+
+        fp.title = parsedContent[fpIndex].title || fp.title
+        fp.description = parsedContent[fpIndex].description || fp.description
+        fp.category = parsedContent[fpIndex].category || fp.category
+        fp.metaTitle = parsedContent[fpIndex].meta_title || fp.metaTitle
+        fp.metaDescription = parsedContent[fpIndex].meta_description || fp.metaDescription
+
+        return fp
+      })
 
       await saveProducts(formattedProducts)
 
-      return Promise.resolve('Success.')
+      return Promise.resolve('Success!')
     } catch (error) {
       console.log('%c error', 'color: red; font-weight: bold;', error)
 
@@ -470,7 +501,7 @@ const AuthProvider = ({ children }: Props) => {
           shopCustomDomain: null,
           initialShopDeployStatus: 0,
           scheduleShopDeployStatus: 0,
-          isVertaxEnabled: false
+          isVertaxEnabled: data.isVertaxEnabled
         })
 
         shop = await getShop(state.selectedInstagramAccount.id.toString())

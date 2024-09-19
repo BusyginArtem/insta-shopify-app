@@ -12,7 +12,7 @@ import themeConfig from 'src/configs/themeConfig'
 import { useEffect, useState } from 'react'
 import InstagramAccountAccountsLoader from './InstagramAccountAccountsLoader'
 import InstagramAccountAccountsList from './InstagramAccountAccountsList'
-import type { AuthValuesType, InstagramAccountType } from 'src/context/types'
+import type { AuthValuesType, InstagramAccountType } from 'src/types'
 import type { IFacebookService } from 'src/services/facebook'
 
 const Card = styled(MuiCard)(({ theme }) => ({

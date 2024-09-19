@@ -49,7 +49,7 @@ type ThemeConfig = {
 
 const themeConfig: ThemeConfig = {
   // ** Layout Configs
-  templateName: 'Vuexy' /* App Name */,
+  templateName: 'Insta Shop App' /* App Name */,
   layout: 'vertical' /* vertical | horizontal */,
   mode: 'light' as Mode /* light | dark | semi-dark /*! Note: semi-dark value will only work for Vertical Layout */,
   direction: 'ltr' /* ltr | rtl */,
@@ -61,11 +61,11 @@ const themeConfig: ThemeConfig = {
   routingLoader: true /* true | false */,
 
   // ** Navigation (Menu) Configs
-  navHidden: false /* true | false */,
+  navHidden: true /* true | false */,
   menuTextTruncate: true /* true | false */,
   navSubItemIcon: 'tabler:circle' /* Icon */,
   verticalNavToggleType: 'accordion' /* accordion | collapse /*! Note: This is for Vertical navigation menu only */,
-  navCollapsed: false /* true | false /*! Note: This is for Vertical navigation menu only */,
+  navCollapsed: true /* true | false /*! Note: This is for Vertical navigation menu only */,
   navigationSize: 260 /* Number in px(Pixels) /*! Note: This is for Vertical navigation menu only */,
   collapsedNavigationSize: 82 /* Number in px(Pixels) /*! Note: This is for Vertical navigation menu only */,
   afterVerticalNavMenuContentPosition: 'fixed' /* fixed | static */,
@@ -78,7 +78,7 @@ const themeConfig: ThemeConfig = {
   appBarBlur: true /* true | false */,
 
   // ** Other Configs
-  responsiveFontSizes: false /* true | false */,
+  responsiveFontSizes: true /* true | false */,
   disableRipple: false /* true | false */,
   disableCustomizer: true /* true | false */,
   toastPosition: 'top-right' /* top-left | top-center | top-right | bottom-left | bottom-center | bottom-right */

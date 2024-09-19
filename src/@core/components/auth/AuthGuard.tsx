@@ -9,6 +9,7 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Constants
 import authConfig from 'src/configs/auth'
+import { APP_ROUTES } from 'src/configs/constants'
 
 interface AuthGuardProps {
   children: ReactNode
@@ -22,19 +23,20 @@ const AuthGuard = (props: AuthGuardProps) => {
 
   useEffect(
     () => {
-      // TODO uncomment this
-      // if (!router.isReady) {
-      //   return
-      // }
+      console.log('router ->', router)
+
+      if (!router.isReady) {
+        return
+      }
 
       if (auth.user === null && !window.localStorage.getItem(authConfig.storageTokenKeyName)) {
-        if (router.asPath !== '/') {
+        if (router.asPath !== APP_ROUTES.MAIN) {
           router.replace({
-            pathname: '/login',
+            pathname: APP_ROUTES.LOGIN,
             query: { returnUrl: router.asPath }
           })
         } else {
-          router.replace('/login')
+          router.replace(APP_ROUTES.LOGIN)
         }
       }
     },

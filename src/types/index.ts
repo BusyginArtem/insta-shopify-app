@@ -1,3 +1,4 @@
+import { REQUEST_STATUTES } from './../configs/constants'
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -77,6 +78,7 @@ export type InstagramSetupFormValues = {
   shopDescription: string
   shopName: string
   email: string
+  isVertaxEnabled: boolean
 }
 
 export type ProductType = {
@@ -103,4 +105,17 @@ export type ProductType = {
   category: string | null
   createdAt: Timestamp
   updatedAt: Timestamp
+  thumbnailBase64?: string
 }
+
+export type RequestStatusTypes = (typeof REQUEST_STATUTES)[keyof typeof REQUEST_STATUTES]
+
+export type PostContent = {
+  title: string
+  category: string
+  description: string
+  meta_description: string
+  meta_title: string
+}
+
+export type GeneratedContent = PostContent[]
