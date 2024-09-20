@@ -34,7 +34,7 @@ import AppSideNav from 'src/navigation/AppSideNav'
 import Spinner from 'src/@core/components/spinner'
 
 // ** Contexts
-import { AuthProvider } from 'src/context/AuthContext'
+import { AuthProvider } from 'src/context/AuthContext/AuthContext'
 import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsContext'
 
 // ** Store

@@ -8,7 +8,7 @@ declare global {
 }
 
 import { User } from '@firebase/auth'
-import { Timestamp } from '@firebase/firestore'
+import { FieldValue, Timestamp } from '@firebase/firestore'
 
 export type UserDataType = {
   id: number
@@ -78,7 +78,7 @@ export type InstagramSetupFormValues = {
   shopDescription: string
   shopName: string
   email: string
-  isVertaxEnabled: boolean
+  // isVertaxEnabled: boolean
 }
 
 export type ProductType = {
@@ -103,8 +103,8 @@ export type ProductType = {
   variants: object[]
   similar: string[]
   category: string | null
-  createdAt: Timestamp
-  updatedAt: Timestamp
+  createdAt: FieldValue
+  updatedAt: FieldValue
   thumbnailBase64?: string
 }
 

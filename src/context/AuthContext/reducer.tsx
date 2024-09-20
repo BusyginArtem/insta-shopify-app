@@ -1,5 +1,5 @@
 import { Actions, ActionTypes } from './actionTypes'
-import type { AuthValuesType } from '../types'
+import type { AuthValuesType } from '../../types'
 
 const authReducer = (state: AuthValuesType, action: Actions) => {
   // console.groupCollapsed(action.type)

@@ -2,7 +2,7 @@
 import { createContext, useEffect, ReactNode, useReducer } from 'react'
 
 // ** Third party imports
-import { v4 } from 'uuid'
+// import { v4 } from 'uuid'
 import {
   FacebookAuthProvider,
   OAuthCredential,
@@ -13,7 +13,7 @@ import {
   signOut
 } from '@firebase/auth'
 import { getDoc, setDoc, doc, addDoc, collection, Timestamp } from '@firebase/firestore'
-import { getDownloadURL, ref, uploadString } from '@firebase/storage'
+// import { getDownloadURL, ref, uploadString } from '@firebase/storage'
 import { User } from '@firebase/auth'
 
 import toast from 'react-hot-toast'
@@ -40,7 +40,7 @@ import type {
   InstagramAccountType,
   InstagramSetupFormValues,
   GeneratedContent
-} from '../types'
+} from '../../types'
 import authReducer from './reducer'
 import { ActionTypes } from './actionTypes'
 
@@ -55,70 +55,70 @@ const STORAGE_PRODUCTS = 'products'
 // ** Helpers
 const isError = (err: unknown): err is Error => err instanceof Error
 
-const getImageBase64 = async (url: string) => {
-  // Fetch the image
-  const response = await fetch(url)
+// const getImageBase64 = async (url: string) => {
+//   // Fetch the image
+//   const response = await fetch(url)
 
-  const arrayBuffer = await response.arrayBuffer()
+//   const arrayBuffer = await response.arrayBuffer()
 
-  const base64String = Buffer.from(arrayBuffer).toString('base64')
+//   const base64String = Buffer.from(arrayBuffer).toString('base64')
 
-  return `${base64String}`
-}
+//   return `${base64String}`
+// }
 
-const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], shopOwnerId: User['uid']): ProductType => {
-  let type = null
-  let thumbnail = null
-  let images: string[] = []
-  let videoUrl = null
+// const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], shopOwnerId: User['uid']): ProductType => {
+//   let type = null
+//   let thumbnail = null
+//   let images: string[] = []
+//   let videoUrl = null
 
-  switch (igPost.media_type) {
-    case 'IMAGE':
-      type = 'image'
-      thumbnail = igPost.media_url
-      images = [igPost.media_url]
-      break
+//   switch (igPost.media_type) {
+//     case 'IMAGE':
+//       type = 'image'
+//       thumbnail = igPost.media_url
+//       images = [igPost.media_url]
+//       break
 
-    case 'VIDEO':
-      type = 'video'
-      thumbnail = igPost.thumbnail_url
-      images = [igPost.thumbnail_url]
-      videoUrl = igPost.media_url
-      break
+//     case 'VIDEO':
+//       type = 'video'
+//       thumbnail = igPost.thumbnail_url
+//       images = [igPost.thumbnail_url]
+//       videoUrl = igPost.media_url
+//       break
 
-    case 'CAROUSEL_ALBUM':
-      type = 'carousel_album'
-      thumbnail = igPost.media_url
-      images = [igPost.media_url]
-      break
-  }
+//     case 'CAROUSEL_ALBUM':
+//       type = 'carousel_album'
+//       thumbnail = igPost.media_url
+//       images = [igPost.media_url]
+//       break
+//   }
 
-  return {
-    instagramId: igPost.id,
-    shopOwnerId,
-    shopId,
-    type,
-    status: 'draft',
-    title: null,
-    description: igPost.caption || '',
-    permalink: igPost.permalink,
-    metaTitle: null,
-    metaDescription: null,
-    price: null,
-    oldPrice: null,
-    color: null,
-    size: null,
-    material: null,
-    thumbnail,
-    images,
-    videoUrl,
-    variants: [],
-    similar: [],
-    category: null,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now()
-  }
-}
+//   return {
+//     instagramId: igPost.id,
+//     shopOwnerId,
+//     shopId,
+//     type,
+//     status: 'draft',
+//     title: null,
+//     description: igPost.caption || '',
+//     permalink: igPost.permalink,
+//     metaTitle: null,
+//     metaDescription: null,
+//     price: null,
+//     oldPrice: null,
+//     color: null,
+//     size: null,
+//     material: null,
+//     thumbnail,
+//     images,
+//     videoUrl,
+//     variants: [],
+//     similar: [],
+//     category: null,
+//     createdAt: Timestamp.now(),
+//     updatedAt: Timestamp.now()
+//   }
+// }
 
 // ** Defaults
 const initialState: AuthValuesType = {
@@ -147,8 +147,8 @@ const AuthProvider = ({ children }: Props) => {
   const router = useRouter()
   const firebaseAuth = useFirebaseAuth()
   const firestore = useFirebaseFirestore()
-  const facebook = useFacebook(state.facebookAccessToken)
-  const vertex = useFirebaseVertexAI()
+  // const facebook = useFacebook(state.facebookAccessToken)
+  // const vertex = useFirebaseVertexAI()
   const storage = useFirebaseStorage()
 
   // ** If the Instagram account exists store it in the context otherwise redirect to the setup Instagram account page
@@ -356,125 +356,125 @@ const AuthProvider = ({ children }: Props) => {
     router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
   }
 
-  const saveProducts = async (products: ProductType[]) => {
-    for (const product of products) {
-      await addDoc(collection(firestore, COLLECTION_PRODUCTS), product)
-    }
-  }
+  // const saveProducts = async (products: ProductType[]) => {
+  //   for (const product of products) {
+  //     await addDoc(collection(firestore, COLLECTION_PRODUCTS), product)
+  //   }
+  // }
 
-  async function uploadImage(imageUrl: string, shopId: string) {
-    try {
-      const filename = `${v4()}.jpg`
-      const productImagesRef = ref(storage, STORAGE_PRODUCTS)
-      const productImagesShopRef = ref(productImagesRef, `${shopId}`)
-      const productImageRef = ref(productImagesShopRef, `${filename}`)
-      const imageBase64 = await getImageBase64(imageUrl)
+  // async function uploadImage(imageUrl: string, shopId: string) {
+  //   try {
+  //     const filename = `${v4()}.jpg`
+  //     const productImagesRef = ref(storage, STORAGE_PRODUCTS)
+  //     const productImagesShopRef = ref(productImagesRef, `${shopId}`)
+  //     const productImageRef = ref(productImagesShopRef, `${filename}`)
+  //     const imageBase64 = await getImageBase64(imageUrl)
 
-      const productFileSnapshot = await uploadString(productImageRef, imageBase64, 'base64', {
-        contentType: 'image/jpeg'
-      })
+  //     const productFileSnapshot = await uploadString(productImageRef, imageBase64, 'base64', {
+  //       contentType: 'image/jpeg'
+  //     })
 
-      const productImageUrl = await getDownloadURL(productFileSnapshot.ref)
+  //     const productImageUrl = await getDownloadURL(productFileSnapshot.ref)
 
-      return productImageUrl
-    } catch (error) {
-      console.log(error)
+  //     return productImageUrl
+  //   } catch (error) {
+  //     console.log(error)
 
-      return ''
-    }
-  }
+  //     return ''
+  //   }
+  // }
 
-  const formatAndStoreProducts = async (shop: Shop): Promise<string> => {
-    if (!state.selectedInstagramAccount?.id) {
-      return Promise.reject('Instagram account is missed!')
-    }
+  // const formatAndStoreProducts = async (shop: Shop): Promise<string> => {
+  //   if (!state.selectedInstagramAccount?.id) {
+  //     return Promise.reject('Instagram account is missed!')
+  //   }
 
-    const shopId = shop.id
+  //   const shopId = shop.id
 
-    try {
-      const posts: InstagramPostType[] = await facebook.getInstagramPosts(state.selectedInstagramAccount.id.toString())
-      let formattedProducts = posts.map(post => formatProduct(post, shopId, state.user?.uid!))
+  //   try {
+  //     const posts: InstagramPostType[] = await facebook.getInstagramPosts(state.selectedInstagramAccount.id.toString())
+  //     let formattedProducts = posts.map(post => formatProduct(post, shopId, state.user?.uid!))
 
-      formattedProducts = await Promise.all(
-        formattedProducts.map(async formattedProduct => {
-          if (formattedProduct.thumbnail) {
-            formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
-            // upload thumbnail
-            formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
-          }
+  //     formattedProducts = await Promise.all(
+  //       formattedProducts.map(async formattedProduct => {
+  //         if (formattedProduct.thumbnail) {
+  //           formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
+  //           // upload thumbnail
+  //           formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
+  //         }
 
-          if (formattedProduct.images) {
-            formattedProduct.images = await Promise.all(
-              formattedProduct.images.map(async image => {
-                return await uploadImage(image, shopId)
-              })
-            )
-          }
+  //         if (formattedProduct.images) {
+  //           formattedProduct.images = await Promise.all(
+  //             formattedProduct.images.map(async image => {
+  //               return await uploadImage(image, shopId)
+  //             })
+  //           )
+  //         }
 
-          return formattedProduct
-        })
-      )
+  //         return formattedProduct
+  //       })
+  //     )
 
-      if (!formattedProducts.length) {
-        return Promise.resolve('Instagram posts not found!')
-      }
+  //     if (!formattedProducts.length) {
+  //       return Promise.resolve('Instagram posts not found!')
+  //     }
 
-      const parts: (InlineDataPart | TextPart)[] = [
-        ...formattedProducts.map(fp => ({
-          inlineData: {
-            data: fp.thumbnailBase64 as string,
-            mimeType: 'image/jpeg'
-          }
-        })),
-        {
-          text: `
-            I provide you with images of products. For each image you need to focus and understood what product on the image. Write me a title, description, meta title,
-            meta description and category for each product for publishing this product on my online store.
-            Choose mo relevant category from list that I provide.
-            Provide me with valid json array format without any other data for each product and save product's order that I sent.
-          `
-        }
-      ]
+  //     const parts: (InlineDataPart | TextPart)[] = [
+  //       ...formattedProducts.map(fp => ({
+  //         inlineData: {
+  //           data: fp.thumbnailBase64 as string,
+  //           mimeType: 'image/jpeg'
+  //         }
+  //       })),
+  //       {
+  //         text: `
+  //           I provide you with images of products. For each image you need to focus and understood what product on the image. Write me a title, description, meta title,
+  //           meta description and category for each product for publishing this product on my online store.
+  //           Choose mo relevant category from list that I provide.
+  //           Provide me with valid json array format without any other data for each product and save product's order that I sent.
+  //         `
+  //       }
+  //     ]
 
-      const requestToVertexAI = {
-        contents: [
-          {
-            role: 'user',
-            parts
-          }
-        ]
-      }
+  //     const requestToVertexAI = {
+  //       contents: [
+  //         {
+  //           role: 'user',
+  //           parts
+  //         }
+  //       ]
+  //     }
 
-      const result = await vertex.model.generateContent(requestToVertexAI as GenerateContentRequest)
-      let parsedContent: GeneratedContent = []
+  //     const result = await vertex.model.generateContent(requestToVertexAI as GenerateContentRequest)
+  //     let parsedContent: GeneratedContent = []
 
-      if (result.response.candidates?.length) {
-        parsedContent = JSON.parse(
-          result.response.candidates[0].content.parts[0].text?.replace('```json', '').replace('```', '')!
-        )
-      }
+  //     if (result.response.candidates?.length) {
+  //       parsedContent = JSON.parse(
+  //         result.response.candidates[0].content.parts[0].text?.replace('```json', '').replace('```', '')!
+  //       )
+  //     }
 
-      formattedProducts = formattedProducts.map((fp, fpIndex) => {
-        delete fp.thumbnailBase64
+  //     formattedProducts = formattedProducts.map((fp, fpIndex) => {
+  //       delete fp.thumbnailBase64
 
-        fp.title = parsedContent[fpIndex].title || fp.title
-        fp.description = parsedContent[fpIndex].description || fp.description
-        fp.category = parsedContent[fpIndex].category || fp.category
-        fp.metaTitle = parsedContent[fpIndex].meta_title || fp.metaTitle
-        fp.metaDescription = parsedContent[fpIndex].meta_description || fp.metaDescription
+  //       fp.title = parsedContent[fpIndex].title || fp.title
+  //       fp.description = parsedContent[fpIndex].description || fp.description
+  //       fp.category = parsedContent[fpIndex].category || fp.category
+  //       fp.metaTitle = parsedContent[fpIndex].meta_title || fp.metaTitle
+  //       fp.metaDescription = parsedContent[fpIndex].meta_description || fp.metaDescription
 
-        return fp
-      })
+  //       return fp
+  //     })
 
-      await saveProducts(formattedProducts)
+  //     await saveProducts(formattedProducts)
 
-      return Promise.resolve('Success!')
-    } catch (error) {
-      console.log('%c error', 'color: red; font-weight: bold;', error)
+  //     return Promise.resolve('Success!')
+  //   } catch (error) {
+  //     console.log('%c error', 'color: red; font-weight: bold;', error)
 
-      return Promise.reject('Something went wrong!')
-    }
-  }
+  //     return Promise.reject('Something went wrong!')
+  //   }
+  // }
 
   const handleSetUp = async (data: InstagramSetupFormValues) => {
     try {
@@ -501,7 +501,8 @@ const AuthProvider = ({ children }: Props) => {
           shopCustomDomain: null,
           initialShopDeployStatus: 0,
           scheduleShopDeployStatus: 0,
-          isVertaxEnabled: data.isVertaxEnabled
+          // isVertaxEnabled: data.isVertaxEnabled
+          isVertaxEnabled: false
         })
 
         shop = await getShop(state.selectedInstagramAccount.id.toString())
@@ -510,7 +511,7 @@ const AuthProvider = ({ children }: Props) => {
       if (shop) {
         dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: shop })
 
-        await formatAndStoreProducts(shop)
+        // await formatAndStoreProducts(shop)
 
         await updateShop(shop.id!, {
           initialProductsSyncStatus: 0

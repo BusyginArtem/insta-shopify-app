@@ -44,8 +44,8 @@ const schema = yup.object().shape({
 const defaultValues = {
   email: '',
   shopName: '',
-  shopDescription: '',
-  isVertaxEnabled: false
+  shopDescription: ''
+  // isVertaxEnabled: false
 }
 
 type Props = {
@@ -173,7 +173,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
             )}
           />
         </Box>
-        <Box sx={{ mb: 2 }}>
+        {/* <Box sx={{ mb: 2 }}>
           <Controller
             name='isVertaxEnabled'
             control={control}
@@ -189,7 +189,7 @@ const InstagramAccountSetupFormView = ({ auth, theme, onSubmit }: Props) => {
               />
             )}
           />
-        </Box>
+        </Box> */}
         <Box
           sx={{
             mb: 1.75,

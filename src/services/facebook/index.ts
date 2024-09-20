@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { InstagramAccountType, InstagramPostType } from 'src/context/types'
+import { InstagramAccountType, InstagramPostType } from 'src/types'
 
 export interface IFacebookService {
   getInstagramAccounts: () => Promise<InstagramAccountType[]>

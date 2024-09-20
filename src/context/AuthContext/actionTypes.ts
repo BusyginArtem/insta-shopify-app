@@ -1,5 +1,5 @@
 import type { User } from '@firebase/auth'
-import type { InstagramAccountType, Shop, SignInPayloadType } from './types'
+import type { InstagramAccountType, Shop, SignInPayloadType } from '../../types'
 
 export enum ActionTypes {
   SIGN_IN = 'SIGN_IN',

@@ -1,10 +1,5 @@
 // ** Third party imports
-import { collection, getDocs, query, where } from '@firebase/firestore'
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-
-// ** Hooks
-import useAuth from 'src/hooks/useAuth'
-import useFirebaseFirestore from 'src/hooks/useFirebaseFirestore'
 
 // ** Constants
 import { REQUEST_STATUTES } from 'src/configs/constants'
@@ -13,19 +8,19 @@ import { REQUEST_STATUTES } from 'src/configs/constants'
 import type { ProductType, RequestStatusTypes } from 'src/types'
 import { RootState } from '.'
 
-const PRODUCTS_COLLECTION = 'products'
+// ** Service
+import FirestoreService from 'src/services/db/products/firestore'
+import ProductDBAdapter from 'src/services/db/products/adapter'
 
 // ** Helpers
 const isError = (err: unknown): err is Error => err instanceof Error
 
-const db = useFirebaseFirestore()
+const productsService = new FirestoreService()
+const dbAdapter = new ProductDBAdapter(productsService)
 
 // ** Fetch products
 export const fetchProducts = createAsyncThunk('products/fetchData', async ({ shopId }: { shopId: string }) => {
-  const productsRef = collection(db, PRODUCTS_COLLECTION)
-  const querySnapshot = await getDocs(query(productsRef, where('shopId', '==', shopId)))
-
-  return !querySnapshot.empty ? querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as ProductType) })) : []
+  return dbAdapter.getProductList({ shopId })
 })
 
 type ProductsState = {
