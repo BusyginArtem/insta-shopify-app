@@ -4,7 +4,7 @@ import IconButton from '@mui/material/IconButton'
 import Avatar from '@mui/material/Avatar'
 import Icon from 'src/@core/components/icon'
 
-import type { AuthValuesType, InstagramAccountType } from 'src/context/types'
+import type { AuthValuesType, InstagramAccountType } from 'src/types'
 
 type Props = {
   accounts: InstagramAccountType[]

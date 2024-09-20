@@ -10,7 +10,7 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Types
 import type { Theme } from '@mui/material'
-import type { InstagramSetupFormValues } from 'src/context/types'
+import type { InstagramSetupFormValues } from 'src/types'
 
 type Props = {
   theme: Theme

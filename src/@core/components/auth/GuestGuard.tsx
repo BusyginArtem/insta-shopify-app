@@ -7,6 +7,10 @@ import { useRouter } from 'next/router'
 // ** Hooks Import
 import useAuth from 'src/hooks/useAuth'
 
+// ** Constants
+import authConfig from 'src/configs/auth'
+import { APP_ROUTES } from 'src/configs/constants'
+
 interface GuestGuardProps {
   children: ReactNode
   fallback: ReactElement | null
@@ -22,8 +26,8 @@ const GuestGuard = (props: GuestGuardProps) => {
       return
     }
 
-    if (window.localStorage.getItem('userData')) {
-      router.replace('/')
+    if (window.localStorage.getItem(authConfig.storageTokenKeyName)) {
+      router.replace(APP_ROUTES.MAIN)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.route])
