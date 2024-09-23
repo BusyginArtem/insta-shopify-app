@@ -19,7 +19,12 @@ export default function ProductsLayout({ children }: Props) {
 
   useEffect(() => {
     if (auth.shop?.id) {
-      dispatch(fetchProducts({ shopId: auth.shop.id }))
+      const promise = dispatch(fetchProducts({ shopId: auth.shop.id }))
+
+      return () => {
+        // TODO check
+        promise.abort()
+      }
     }
   }, [auth.shop?.id])
 

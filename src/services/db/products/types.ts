@@ -2,14 +2,18 @@
 // import type { IFacebookService } from 'src/services/facebook'
 
 // ** Types
-import { ProductType } from 'src/types'
+import { ProductType, Shop } from 'src/types'
 
 export interface Service {
-  getProducts: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
-  saveProducts: (products: ProductType[]) => Promise<void>
-  // facebook: IFacebookService
-  // vertex: {
-  //   vertexAI: VertexAI
-  //   model: GenerativeModel
-  // }
+  getAll: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
+  save: (products: ProductType[]) => Promise<void>
+  getCount: ({ shopId }: { shopId: string }) => Promise<number>
+  edit: (key: string, product: ProductType) => Promise<void>
+}
+
+export type FormatProductsType = {
+  shop: Shop
+  instagramAccountId: string
+  userId: string
+  facebookAccessToken: string
 }

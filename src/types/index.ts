@@ -8,7 +8,7 @@ declare global {
 }
 
 import { User } from '@firebase/auth'
-import { FieldValue, Timestamp } from '@firebase/firestore'
+import { FieldValue } from '@firebase/firestore'
 
 export type UserDataType = {
   id: number

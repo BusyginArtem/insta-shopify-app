@@ -158,7 +158,7 @@ const TextFieldStyled = styled(TextField)<TextFieldProps>(({ theme }) => ({
 const CustomTextField = forwardRef((props: TextFieldProps, ref) => {
   // ** Props
   const { size = 'small', InputLabelProps, helperText, ...rest } = props
-  console.log('%c rest', 'color: red; font-weight: bold;', rest)
+
   return (
     <TextFieldStyled
       size={size}

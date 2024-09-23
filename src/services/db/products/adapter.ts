@@ -4,7 +4,8 @@ import type { Service } from './types'
 
 interface IProductDBAdapter {
   getProductList: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
-  saveProducts: () => Promise<void>
+  saveProducts: (products: ProductType[]) => Promise<void>
+  getProductCount: ({ shopId }: { shopId: string }) => Promise<number>
   productService: Service
 }
 
@@ -16,11 +17,15 @@ class ProductDBAdapter implements IProductDBAdapter {
   }
 
   async getProductList({ shopId }: { shopId: string }) {
-    return await this.productService.getProducts({ shopId })
+    return await this.productService.getAll({ shopId })
   }
 
-  async saveProducts() {
-    await this.productService.saveProducts([])
+  async saveProducts(products: ProductType[]) {
+    await this.productService.save(products)
+  }
+
+  async getProductCount({ shopId }: { shopId: string }): Promise<number> {
+    return await this.productService.getCount({ shopId })
   }
 }
 

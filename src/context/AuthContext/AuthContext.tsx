@@ -4,17 +4,15 @@ import { createContext, useEffect, ReactNode, useReducer } from 'react'
 // ** Third party imports
 // import { v4 } from 'uuid'
 import {
-  FacebookAuthProvider,
-  OAuthCredential,
+  signOut,
   UserCredential,
+  signInWithPopup,
+  OAuthCredential,
   onAuthStateChanged,
   signInWithCredential,
-  signInWithPopup,
-  signOut
+  FacebookAuthProvider
 } from '@firebase/auth'
-import { getDoc, setDoc, doc, addDoc, collection, Timestamp } from '@firebase/firestore'
-// import { getDownloadURL, ref, uploadString } from '@firebase/storage'
-import { User } from '@firebase/auth'
+import { getDoc, setDoc, doc } from '@firebase/firestore'
 
 import toast from 'react-hot-toast'
 
@@ -24,101 +22,27 @@ import { useRouter } from 'next/router'
 // ** Hooks
 import useFirebaseAuth from 'src/hooks/useFirebaseAuth'
 import useFirebaseFirestore from 'src/hooks/useFirebaseFirestore'
-import useFacebook from 'src/hooks/useFacebook'
-import useFirebaseVertexAI from 'src/hooks/useFirebaseVertexAI'
-import useFirebaseStorage from 'src/hooks/useFirebaseStorage'
 
 // ** Config
 import authConfig from 'src/configs/auth'
 
 // ** Types & Reducer
-import type {
-  Shop,
-  ProductType,
-  AuthValuesType,
-  InstagramPostType,
-  InstagramAccountType,
-  InstagramSetupFormValues,
-  GeneratedContent
-} from '../../types'
+import type { Shop, AuthValuesType, InstagramAccountType, InstagramSetupFormValues } from '../../types'
 import authReducer from './reducer'
 import { ActionTypes } from './actionTypes'
 
 // ** Constants
 import { APP_ROUTES } from 'src/configs/constants'
-import { GenerateContentRequest, InlineDataPart, Part, TextPart } from 'firebase/vertexai-preview'
+// import { GenerateContentRequest, InlineDataPart, Part, TextPart } from 'firebase/vertexai-preview'
+import { useAppDispatch } from 'src/store'
+
+// ** Store actions
+import { saveProducts } from 'src/store/products'
 
 const COLLECTION_SHOPS = 'shops'
-const COLLECTION_PRODUCTS = 'products'
-const STORAGE_PRODUCTS = 'products'
 
 // ** Helpers
 const isError = (err: unknown): err is Error => err instanceof Error
-
-// const getImageBase64 = async (url: string) => {
-//   // Fetch the image
-//   const response = await fetch(url)
-
-//   const arrayBuffer = await response.arrayBuffer()
-
-//   const base64String = Buffer.from(arrayBuffer).toString('base64')
-
-//   return `${base64String}`
-// }
-
-// const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], shopOwnerId: User['uid']): ProductType => {
-//   let type = null
-//   let thumbnail = null
-//   let images: string[] = []
-//   let videoUrl = null
-
-//   switch (igPost.media_type) {
-//     case 'IMAGE':
-//       type = 'image'
-//       thumbnail = igPost.media_url
-//       images = [igPost.media_url]
-//       break
-
-//     case 'VIDEO':
-//       type = 'video'
-//       thumbnail = igPost.thumbnail_url
-//       images = [igPost.thumbnail_url]
-//       videoUrl = igPost.media_url
-//       break
-
-//     case 'CAROUSEL_ALBUM':
-//       type = 'carousel_album'
-//       thumbnail = igPost.media_url
-//       images = [igPost.media_url]
-//       break
-//   }
-
-//   return {
-//     instagramId: igPost.id,
-//     shopOwnerId,
-//     shopId,
-//     type,
-//     status: 'draft',
-//     title: null,
-//     description: igPost.caption || '',
-//     permalink: igPost.permalink,
-//     metaTitle: null,
-//     metaDescription: null,
-//     price: null,
-//     oldPrice: null,
-//     color: null,
-//     size: null,
-//     material: null,
-//     thumbnail,
-//     images,
-//     videoUrl,
-//     variants: [],
-//     similar: [],
-//     category: null,
-//     createdAt: Timestamp.now(),
-//     updatedAt: Timestamp.now()
-//   }
-// }
 
 // ** Defaults
 const initialState: AuthValuesType = {
@@ -142,6 +66,7 @@ const AuthContext = createContext(initialState)
 
 const AuthProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
+  const appDispatch = useAppDispatch()
 
   // ** Hooks
   const router = useRouter()
@@ -149,7 +74,7 @@ const AuthProvider = ({ children }: Props) => {
   const firestore = useFirebaseFirestore()
   // const facebook = useFacebook(state.facebookAccessToken)
   // const vertex = useFirebaseVertexAI()
-  const storage = useFirebaseStorage()
+  // const storage = useFirebaseStorage()
 
   // ** If the Instagram account exists store it in the context otherwise redirect to the setup Instagram account page
   useEffect(() => {
@@ -512,6 +437,14 @@ const AuthProvider = ({ children }: Props) => {
         dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: shop })
 
         // await formatAndStoreProducts(shop)
+        appDispatch(
+          saveProducts({
+            shop,
+            instagramAccountId: state.selectedInstagramAccount?.id,
+            userId: state.user?.uid,
+            facebookAccessToken: state.facebookAccessToken
+          })
+        )
 
         await updateShop(shop.id!, {
           initialProductsSyncStatus: 0
