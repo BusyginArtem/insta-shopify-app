@@ -24,7 +24,7 @@ class FirestoreService implements Service {
     return FirestoreService.instance
   }
 
-  public async getAll({ shopId }: { shopId: string }): Promise<ProductType[]> {
+  public async getAllByShopId({ shopId }: { shopId: string }): Promise<ProductType[]> {
     const productsRef = collection(this.db, PRODUCTS_COLLECTION)
     const querySnapshot = await getDocs(query(productsRef, where('shopId', '==', shopId)))
 

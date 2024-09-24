@@ -39,10 +39,16 @@ import { useAppDispatch } from 'src/store'
 // ** Store actions
 import { saveProducts } from 'src/store/products'
 
+// ** Services
+// import IndexedDBService from 'src/services/db/products/indexeddb'
+// import ProductDBAdapter from 'src/services/db/products/adapter'
+
 const COLLECTION_SHOPS = 'shops'
 
 // ** Helpers
 const isError = (err: unknown): err is Error => err instanceof Error
+
+// const dbAdapter = new ProductDBAdapter(IndexedDBService)
 
 // ** Defaults
 const initialState: AuthValuesType = {
@@ -208,6 +214,8 @@ const AuthProvider = ({ children }: Props) => {
       // window.localStorage.removeItem(authConfig.storageUserDataKeyName)
       window.localStorage.removeItem(authConfig.storageTokenKeyName)
       window.localStorage.removeItem(authConfig.instagramAccountKeyName)
+
+      // dbAdapter.clearProductsDB()
 
       dispatch({ type: ActionTypes.SIGN_OUT_SUCCESS })
 

@@ -82,6 +82,7 @@ export type InstagramSetupFormValues = {
 }
 
 export type ProductType = {
+  id?: string
   instagramId: string
   shopId: Shop['id']
   shopOwnerId: User['uid']

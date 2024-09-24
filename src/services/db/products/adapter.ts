@@ -6,6 +6,7 @@ interface IProductDBAdapter {
   getProductList: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
   saveProducts: (products: ProductType[]) => Promise<void>
   getProductCount: ({ shopId }: { shopId: string }) => Promise<number>
+  clearProductsDB: () => Promise<void>
   productService: Service
 }
 
@@ -16,8 +17,8 @@ class ProductDBAdapter implements IProductDBAdapter {
     this.productService = productService
   }
 
-  async getProductList({ shopId }: { shopId: string }) {
-    return await this.productService.getAll({ shopId })
+  async getProductList({ shopId }: { shopId: string }): Promise<ProductType[]> {
+    return await this.productService.getAllByShopId({ shopId })
   }
 
   async saveProducts(products: ProductType[]) {
@@ -26,6 +27,12 @@ class ProductDBAdapter implements IProductDBAdapter {
 
   async getProductCount({ shopId }: { shopId: string }): Promise<number> {
     return await this.productService.getCount({ shopId })
+  }
+
+  async clearProductsDB(): Promise<void> {
+    if (this.productService.clear) {
+      await this.productService.clear()
+    }
   }
 }
 

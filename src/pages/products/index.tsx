@@ -1,10 +1,9 @@
 // ** React Imports
 import { ReactNode, useState } from 'react'
-import { useSelector } from 'react-redux'
 
 // ** MUI Components
-import { DataGrid } from '@mui/x-data-grid'
-import { Card, Grid, Box, Button, CardHeader, Typography } from '@mui/material'
+import { DataGrid, GridRowId } from '@mui/x-data-grid'
+import { Card, Grid, Box, Button, CardHeader, Typography, Stack } from '@mui/material'
 
 // ** Custom Component Import
 import UserLayout from '../../layouts/UserLayout'
@@ -13,13 +12,16 @@ import Avatar from 'src/@core/components/mui/avatar'
 import Chip from 'src/@core/components/mui/chip'
 
 // ** Product slice
-import { selectFetchProductsStatus, selectProductsData } from 'src/store/products'
+import { selectFetchClientProductsStatus, selectClientProductsData } from 'src/store/products'
+import { useTypedSelector } from 'src/store'
 
 // ** Types
 import type { ProductType } from 'src/types'
 
 // ** Constants
 import { PRODUCT_STATUSES, REQUEST_STATUTES } from 'src/configs/constants'
+
+const PAGE_SIZE = 5
 
 const status = {
   [PRODUCT_STATUSES.ACTIVE]: 'success',
@@ -128,10 +130,29 @@ const columns = [
 ]
 
 const ProductsPage = () => {
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [selectionModel, setSelectionModel] = useState<GridRowId[]>([])
+  const [page, setPage] = useState(0)
+  console.log('%c selectionModel', 'color: green; font-weight: bold;', selectionModel)
+  const products = useTypedSelector(selectClientProductsData)
+  const queryStatus = useTypedSelector(selectFetchClientProductsStatus)
 
-  const products = useSelector(selectProductsData)
-  const queryStatus = useSelector(selectFetchProductsStatus)
+  const handleSelectRows = (newSelectionModel: GridRowId[]) => {
+    const offset = page * PAGE_SIZE
+    const currentPageRows = products.slice(offset, offset + PAGE_SIZE)
+
+    setSelectionModel(currentSelectionModel => {
+      if (!Array.isArray(currentSelectionModel) || !Array.isArray(newSelectionModel)) {
+        return currentSelectionModel
+      }
+
+      return [
+        ...new Set([
+          ...currentSelectionModel.filter(id => newSelectionModel.includes(id)),
+          ...newSelectionModel.filter(id => currentPageRows.findIndex(row => row.id === id) > -1)
+        ])
+      ]
+    })
+  }
 
   return (
     <Grid container spacing={6.5}>
@@ -140,17 +161,28 @@ const ProductsPage = () => {
           <CardHeader
             title='Products List'
             action={
-              <div>
+              <Stack flexDirection='row' gap={3}>
                 <Button
                   size='medium'
                   variant='contained'
+                  disabled={!selectionModel.length}
+                  onClick={() => {
+                    // setSyncModalOpened(true)
+                  }}
+                >
+                  Add to shop products
+                </Button>
+
+                <Button
+                  size='medium'
+                  variant='outlined'
                   onClick={() => {
                     // setSyncModalOpened(true)
                   }}
                 >
                   Synchronize with Instagram
                 </Button>
-              </div>
+              </Stack>
             }
           />
 
@@ -160,10 +192,16 @@ const ProductsPage = () => {
             rows={products}
             columns={columns}
             disableRowSelectionOnClick
-            pageSizeOptions={[10, 25, 50]}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[PAGE_SIZE]}
+            paginationModel={{
+              page,
+              pageSize: PAGE_SIZE
+            }}
+            onPaginationModelChange={({ page }) => setPage(page)}
             loading={queryStatus === REQUEST_STATUTES.PENDING}
+            checkboxSelection
+            onRowSelectionModelChange={handleSelectRows}
+            rowSelectionModel={selectionModel}
             sx={{
               // disable cell selection style
               '.MuiDataGrid-cell:focus': {

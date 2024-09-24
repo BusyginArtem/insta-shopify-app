@@ -6,7 +6,8 @@ import { Service } from './types'
 import { ProductType } from 'src/types'
 
 const PRODUCTS_DB = 'products'
-
+const PRODUCTS_DB_SHOP_ID_KEY_PATH = 'shopId'
+const PRODUCTS_DB_SHOP_ID_FIELD_NAME = 'by_shop_id'
 class IndexedDBService implements Service {
   private static instance: IndexedDBService
   private dbName = 'insta-shop-db'
@@ -16,8 +17,24 @@ class IndexedDBService implements Service {
 
   private constructor() {}
 
+  // private constructor(storeName: string, dbVersion: number = 1) {
+  //   this.storeName = storeName
+  //   this.dbVersion = dbVersion
+  // }
+
+  // public static setStore(storeName: string, dbVersion: number = 1): IndexedDBService {
+  //   if (!IndexedDBService.instance) {
+  //     IndexedDBService.instance = new IndexedDBService(storeName, dbVersion)
+  //   }
+
+  //   IndexedDBService.instance.init()
+
+  //   return IndexedDBService.instance
+  // }
+
   public static getInstance(): IndexedDBService {
     if (!IndexedDBService.instance) {
+      // throw new Error("You have to invoke the setStore method before using the instance!")
       IndexedDBService.instance = new IndexedDBService()
     }
 
@@ -29,6 +46,10 @@ class IndexedDBService implements Service {
   // Initialize the database
   public async init(): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') {
+        return
+      }
+
       const request = indexedDB.open(this.dbName, this.dbVersion)
 
       request.onerror = () => reject(`Failed to open database ${this.dbName}`)
@@ -42,21 +63,23 @@ class IndexedDBService implements Service {
         const db = (event.target as IDBOpenDBRequest).result
 
         if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName, { keyPath: 'id' })
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
+          store.createIndex(PRODUCTS_DB_SHOP_ID_FIELD_NAME, PRODUCTS_DB_SHOP_ID_KEY_PATH, { unique: false })
         }
       }
     })
   }
 
-  public async getAll(): Promise<ProductType[]> {
+  public async getAllByShopId({ shopId }: { shopId: string }): Promise<ProductType[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) return reject('Database is not initialized')
 
       const transaction = this.db.transaction([this.storeName], 'readonly')
       const store = transaction.objectStore(this.storeName)
-      const request = store.getAll()
+      const index = store.index(PRODUCTS_DB_SHOP_ID_FIELD_NAME) // Use the specified index for querying
+      const request = index.getAll(shopId)
 
-      request.onsuccess = () => resolve(request.result)
+      request.onsuccess = () => resolve(request.result as ProductType[])
       request.onerror = () => reject('Failed to retrieve items')
     })
   }
@@ -71,6 +94,7 @@ class IndexedDBService implements Service {
 
     for (const product of products) {
       await new Promise<void>((resolve, reject) => {
+        console.log('%c product', 'color: green; font-weight: bold;', product)
         const request = store.add({ id: v4(), ...product })
 
         request.onsuccess = () => resolve()
@@ -120,41 +144,39 @@ class IndexedDBService implements Service {
       request.onerror = () => reject('Failed to get count')
     })
   }
+
+  public async clear(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject('Database is not initialized')
+
+      const transaction = this.db.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.clear()
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject('Failed to clear store')
+    })
+  }
+
+  public async deleteItem(key: IDBValidKey): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject('Database is not initialized')
+
+      const transaction = this.db.transaction([this.storeName], 'readwrite')
+      const store = transaction.objectStore(this.storeName)
+      const request = store.delete(key)
+
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(`Failed to delete item with key ${key}`)
+    })
+  }
+
+  // Close the database
+  public close(): void {
+    if (this.db) {
+      this.db.close()
+    }
+  }
 }
-
-//  // Delete an item by key
-//  public async deleteItem(key: IDBValidKey): Promise<void> {
-//   return new Promise((resolve, reject) => {
-//     if (!this.db) return reject("Database is not initialized");
-
-//     const transaction = this.db.transaction([this.storeName], "readwrite");
-//     const store = transaction.objectStore(this.storeName);
-//     const request = store.delete(key);
-
-//     request.onsuccess = () => resolve();
-//     request.onerror = () => reject(`Failed to delete item with key ${key}`);
-//   });
-// }
-
-// // Clear the store
-// public async clearStore(): Promise<void> {
-//   return new Promise((resolve, reject) => {
-//     if (!this.db) return reject("Database is not initialized");
-
-//     const transaction = this.db.transaction([this.storeName], "readwrite");
-//     const store = transaction.objectStore(this.storeName);
-//     const request = store.clear();
-
-//     request.onsuccess = () => resolve();
-//     request.onerror = () => reject("Failed to clear store");
-//   });
-// }
-
-// // Close the database
-// public close(): void {
-//   if (this.db) {
-//     this.db.close();
-//   }
-// }
 
 export default IndexedDBService.getInstance()

@@ -108,18 +108,12 @@ const App = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: Ex
   const authGuard = Component.authGuard ?? true
   const guestGuard = Component.guestGuard ?? false
 
-  const shopifyApiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY
-
   return (
     <Provider store={store}>
       <CacheProvider value={emotionCache}>
         <Head>
           <title>Insta Shop App</title>
           <meta name='description' content='Insta Shop App – is the app for Instagram users.' />
-          <meta name='shopify-api-key' content={shopifyApiKey} />
-          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-          <script src='https://cdn.shopify.com/shopifycloud/app-bridge.js' />
-          <meta name='viewport' content='initial-scale=1, width=device-width' />
         </Head>
 
         <AppSideNav />
