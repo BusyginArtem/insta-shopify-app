@@ -50,6 +50,18 @@ class FirestoreService implements Service {
 
     return snapshot.data().count || 0
   }
+
+  public async isStored({ instagramId }: { instagramId: string }): Promise<boolean> {
+    const productsRef = collection(this.db, PRODUCTS_COLLECTION)
+
+    const q = query(productsRef, where('instagramId', '==', instagramId))
+
+    const querySnapshot = await getDocs(q)
+
+    console.log(querySnapshot.empty)
+
+    return querySnapshot.empty
+  }
 }
 
 export default FirestoreService.getInstance()

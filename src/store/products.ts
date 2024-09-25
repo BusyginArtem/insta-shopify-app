@@ -1,13 +1,14 @@
 // ** Third party imports
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 // ** Constants
 import { REQUEST_STATUTES } from 'src/configs/constants'
 
 // ** Types
-import type { ProductType, RequestStatusTypes } from 'src/types'
-import { RootState } from '.'
-import { FormatProductsType } from 'src/services/db/products/types'
+import type { InstagramPostType, ProductType, RequestStatusTypes } from 'src/types'
+import { AppDispatch, RootState } from '.'
+import type { SaveDBProductsType } from 'src/services/db/products/types'
+import type { GridRowId } from '@mui/x-data-grid'
 
 // ** Service
 // import FirestoreService from 'src/services/db/products/firestore'
@@ -17,34 +18,104 @@ import ProductDBAdapter from 'src/services/db/products/adapter'
 // ** Helpers
 import { isError, formatProducts } from 'src/services/db/products/helpers'
 import shopifyAdminFetch from 'src/utils/shopifyAdminFetch'
-import { queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
+import { createProduct, metafieldMutation, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
+import useFacebook from 'src/hooks/useFacebook'
 
 // const dbAdapter = new ProductDBAdapter(FirestoreService)
 const dbAdapter = new ProductDBAdapter(IndexedDBService)
 
+export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+  state: RootState
+  dispatch: AppDispatch
+  rejectValue: string
+  // extra: { s: string; n: number }
+}>()
+
 // ** Fetch DB products
-export const fetchDBProducts = createAsyncThunk('products/fetchDBItems', async ({ shopId }: { shopId: string }) => {
+export const fetchDBProducts = createAppAsyncThunk('products/fetchDBItems', async ({ shopId }: { shopId: string }) => {
   return dbAdapter.getProductList({ shopId })
 })
 
 // ** Fetch Shopify products
-export const fetchShopifyProducts = createAsyncThunk('products/fetchShopifyItems', async () => {
+export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetchShopifyItems', async () => {
   const { data: products } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
   console.log('%c response', 'color: green; font-weight: bold;', products)
+
   return []
 })
 
 // ** Save products
-export const saveProducts = createAsyncThunk(
+export const saveDBProducts = createAppAsyncThunk(
   'products/saveDBItems',
-  async ({ shop, instagramAccountId, userId, facebookAccessToken }: FormatProductsType) => {
+  async ({ shop, instagramAccountId, userId, facebookAccessToken }: SaveDBProductsType) => {
     const shopId = shop.id
     const storedProductsCount = await dbAdapter.getProductCount({ shopId })
 
     if (!storedProductsCount) {
-      const formattedProducts = await formatProducts({ shop, instagramAccountId, userId, facebookAccessToken })
+      const facebook = useFacebook(facebookAccessToken)
+      const posts: InstagramPostType[] = await facebook.getInstagramPosts(instagramAccountId)
+
+      const formattedProducts = await formatProducts({ shop, userId, posts })
 
       await dbAdapter.saveProducts(formattedProducts)
+    }
+  }
+)
+
+// ** Sync products
+export const syncDBProducts = createAppAsyncThunk(
+  'products/syncDBItems',
+  async ({ shop, instagramAccountId, userId, facebookAccessToken }: SaveDBProductsType) => {
+    const facebook = useFacebook(facebookAccessToken)
+    const posts: InstagramPostType[] = await facebook.getInstagramPosts(instagramAccountId)
+
+    let unStoredPosts = await Promise.all(
+      posts.map(async post => {
+        try {
+          return (await dbAdapter.checkProductExistence({ instagramId: post.id })) ? null : post
+        } catch (e) {
+          return null
+        }
+      })
+    )
+
+    unStoredPosts = unStoredPosts.filter(post => post !== null)
+
+    const formattedProducts = await formatProducts({ shop, userId, posts: unStoredPosts as InstagramPostType[] })
+
+    await dbAdapter.saveProducts(formattedProducts)
+  }
+)
+
+// ** Add to Shopify shop products
+export const addToShopProducts = createAppAsyncThunk(
+  'products/addToShopify',
+  async ({ productIds }: { productIds: GridRowId[] }, { getState }) => {
+    const { products } = getState()
+
+    try {
+      const selectedProductsData = products.data.client.filter(product => productIds.includes(product.id as string))
+      console.log('%c selectedProductsData', 'color: red; font-weight: bold;', selectedProductsData)
+      console.log('%c productIds', 'color: green; font-weight: bold;', productIds)
+
+      await Promise.all(
+        selectedProductsData.map(async product => {
+          const productCreateResponse = await shopifyAdminFetch({ query: createProduct(product) })
+          console.log('%c productCreateResponse', 'color: green; font-weight: bold;', productCreateResponse)
+
+          const productId = productCreateResponse?.data?.productCreate?.product?.id
+
+          if (productId) {
+            const metafieldResponse = await shopifyAdminFetch({
+              query: metafieldMutation(productId, product.instagramId)
+            })
+
+            console.log('%c metafieldResponse', 'color: green; font-weight: bold;', metafieldResponse)
+          }
+        })
+      )
+    } catch (error) {
+      console.log('%c error', 'color: red; font-weight: bold;', error)
     }
   }
 )
@@ -80,6 +151,7 @@ export const productsSlice = createSlice({
   extraReducers: builder => {
     builder.addCase(fetchDBProducts.pending, state => {
       state.status.client = REQUEST_STATUTES.PENDING
+      state.error = null
     })
     builder.addCase(fetchDBProducts.fulfilled, (state, action) => {
       state.data.client = action.payload
@@ -96,14 +168,15 @@ export const productsSlice = createSlice({
 
       state.status.client = REQUEST_STATUTES.REJECTED
     })
-    builder.addCase(fetchShopifyProducts.pending, state => {
+    builder.addCase(fetchShopifyInstagramProducts.pending, state => {
       state.status.shopify = REQUEST_STATUTES.PENDING
+      state.error = null
     })
-    builder.addCase(fetchShopifyProducts.fulfilled, (state, action) => {
+    builder.addCase(fetchShopifyInstagramProducts.fulfilled, (state, action) => {
       state.data.shopify = action.payload
       state.status.shopify = REQUEST_STATUTES.RESOLVED
     })
-    builder.addCase(fetchShopifyProducts.rejected, (state, action) => {
+    builder.addCase(fetchShopifyInstagramProducts.rejected, (state, action) => {
       if (isError(action.error)) {
         state.error = action.error
       } else if (action.error.message) {
@@ -114,13 +187,30 @@ export const productsSlice = createSlice({
 
       state.status.shopify = REQUEST_STATUTES.REJECTED
     })
-    builder.addCase(saveProducts.pending, state => {
+    builder.addCase(saveDBProducts.pending, state => {
       state.status.client = REQUEST_STATUTES.PENDING
     })
-    builder.addCase(saveProducts.fulfilled, state => {
+    builder.addCase(saveDBProducts.fulfilled, state => {
       state.status.client = REQUEST_STATUTES.RESOLVED
     })
-    builder.addCase(saveProducts.rejected, (state, action) => {
+    builder.addCase(saveDBProducts.rejected, (state, action) => {
+      if (isError(action.error)) {
+        state.error = action.error
+      } else if (action.error.message) {
+        state.error = Error(action.error.message)
+      } else {
+        state.error = Error('Something went wrong!')
+      }
+
+      state.status.client = REQUEST_STATUTES.REJECTED
+    })
+    builder.addCase(syncDBProducts.pending, state => {
+      state.status.client = REQUEST_STATUTES.PENDING
+    })
+    builder.addCase(syncDBProducts.fulfilled, state => {
+      state.status.client = REQUEST_STATUTES.RESOLVED
+    })
+    builder.addCase(syncDBProducts.rejected, (state, action) => {
       if (isError(action.error)) {
         state.error = action.error
       } else if (action.error.message) {

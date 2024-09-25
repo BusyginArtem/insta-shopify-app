@@ -37,7 +37,7 @@ import { APP_ROUTES } from 'src/configs/constants'
 import { useAppDispatch } from 'src/store'
 
 // ** Store actions
-import { saveProducts } from 'src/store/products'
+import { saveDBProducts } from 'src/store/products'
 
 // ** Services
 // import IndexedDBService from 'src/services/db/products/indexeddb'
@@ -108,7 +108,7 @@ const AuthProvider = ({ children }: Props) => {
           if (userShop) {
             dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: userShop })
 
-            // router.replace(APP_ROUTES.MAIN)
+            router.replace(APP_ROUTES.MAIN)
           } else {
             router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
           }
@@ -211,13 +211,10 @@ const AuthProvider = ({ children }: Props) => {
 
       await signOut(firebaseAuth.auth)
 
-      // window.localStorage.removeItem(authConfig.storageUserDataKeyName)
+      dispatch({ type: ActionTypes.SIGN_OUT_SUCCESS })
+
       window.localStorage.removeItem(authConfig.storageTokenKeyName)
       window.localStorage.removeItem(authConfig.instagramAccountKeyName)
-
-      // dbAdapter.clearProductsDB()
-
-      dispatch({ type: ActionTypes.SIGN_OUT_SUCCESS })
 
       router.push(APP_ROUTES.LOGIN)
     } catch (error) {
@@ -286,7 +283,8 @@ const AuthProvider = ({ children }: Props) => {
 
     dispatch({ type: ActionTypes.STORE_INSTAGRAM_ACCOUNT, payload: account })
 
-    router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
+    // Comment! This replace is being handled by useEffect
+    // router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
   }
 
   // const saveProducts = async (products: ProductType[]) => {
@@ -440,13 +438,13 @@ const AuthProvider = ({ children }: Props) => {
 
         shop = await getShop(state.selectedInstagramAccount.id.toString())
       }
-
+      console.log('%c shop', 'color: green; font-weight: bold;', shop)
       if (shop) {
         dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: shop })
 
         // await formatAndStoreProducts(shop)
         appDispatch(
-          saveProducts({
+          saveDBProducts({
             shop,
             instagramAccountId: state.selectedInstagramAccount?.id,
             userId: state.user?.uid,

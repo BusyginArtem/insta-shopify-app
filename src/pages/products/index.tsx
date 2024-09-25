@@ -10,10 +10,19 @@ import UserLayout from '../../layouts/UserLayout'
 import ProductsLayout from './layout'
 import Avatar from 'src/@core/components/mui/avatar'
 import Chip from 'src/@core/components/mui/chip'
+import SyncModal from './components/SyncModal'
 
 // ** Product slice
-import { selectFetchClientProductsStatus, selectClientProductsData } from 'src/store/products'
-import { useTypedSelector } from 'src/store'
+import {
+  selectFetchClientProductsStatus,
+  selectClientProductsData,
+  addToShopProducts,
+  fetchDBProducts
+} from 'src/store/products'
+import { useAppDispatch, useTypedSelector } from 'src/store'
+
+// ** Hooks
+import useAuth from 'src/hooks/useAuth'
 
 // ** Types
 import type { ProductType } from 'src/types'
@@ -132,9 +141,15 @@ const columns = [
 const ProductsPage = () => {
   const [selectionModel, setSelectionModel] = useState<GridRowId[]>([])
   const [page, setPage] = useState(0)
-  console.log('%c selectionModel', 'color: green; font-weight: bold;', selectionModel)
+  const [syncModalOpened, setSyncModalOpened] = useState(false)
+
+  // ** Hooks
+  const { shop } = useAuth()
+
   const products = useTypedSelector(selectClientProductsData)
   const queryStatus = useTypedSelector(selectFetchClientProductsStatus)
+
+  const dispatch = useAppDispatch()
 
   const handleSelectRows = (newSelectionModel: GridRowId[]) => {
     const offset = page * PAGE_SIZE
@@ -154,64 +169,72 @@ const ProductsPage = () => {
     })
   }
 
+  const handleAddProductsToShop = () => {
+    dispatch(addToShopProducts({ productIds: selectionModel }))
+  }
+
+  const handleToggleSyncModal = () => {
+    setSyncModalOpened(!syncModalOpened)
+
+    if (shop?.id) {
+      dispatch(fetchDBProducts({ shopId: shop.id }))
+    }
+  }
+
   return (
-    <Grid container spacing={6.5}>
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader
-            title='Products List'
-            action={
-              <Stack flexDirection='row' gap={3}>
-                <Button
-                  size='medium'
-                  variant='contained'
-                  disabled={!selectionModel.length}
-                  onClick={() => {
-                    // setSyncModalOpened(true)
-                  }}
-                >
-                  Add to shop products
-                </Button>
+    <>
+      <SyncModal opened={syncModalOpened} onCloseModal={handleToggleSyncModal} />
 
-                <Button
-                  size='medium'
-                  variant='outlined'
-                  onClick={() => {
-                    // setSyncModalOpened(true)
-                  }}
-                >
-                  Synchronize with Instagram
-                </Button>
-              </Stack>
-            }
-          />
+      <Grid container spacing={6.5}>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader
+              title='Products List'
+              action={
+                <Stack flexDirection='row' gap={3}>
+                  <Button
+                    size='medium'
+                    variant='contained'
+                    disabled={!selectionModel.length}
+                    onClick={handleAddProductsToShop}
+                  >
+                    Add to shop products
+                  </Button>
 
-          <DataGrid
-            autoHeight
-            rowHeight={62}
-            rows={products}
-            columns={columns}
-            disableRowSelectionOnClick
-            pageSizeOptions={[PAGE_SIZE]}
-            paginationModel={{
-              page,
-              pageSize: PAGE_SIZE
-            }}
-            onPaginationModelChange={({ page }) => setPage(page)}
-            loading={queryStatus === REQUEST_STATUTES.PENDING}
-            checkboxSelection
-            onRowSelectionModelChange={handleSelectRows}
-            rowSelectionModel={selectionModel}
-            sx={{
-              // disable cell selection style
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
+                  <Button size='medium' variant='outlined' onClick={handleToggleSyncModal}>
+                    Synchronize with Instagram
+                  </Button>
+                </Stack>
               }
-            }}
-          />
-        </Card>
+            />
+
+            <DataGrid
+              autoHeight
+              rowHeight={62}
+              rows={products}
+              columns={columns}
+              disableRowSelectionOnClick
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{
+                page,
+                pageSize: PAGE_SIZE
+              }}
+              onPaginationModelChange={({ page }) => setPage(page)}
+              loading={queryStatus === REQUEST_STATUTES.PENDING}
+              checkboxSelection
+              onRowSelectionModelChange={handleSelectRows}
+              rowSelectionModel={selectionModel}
+              sx={{
+                // disable cell selection style
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                }
+              }}
+            />
+          </Card>
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   )
 }
 

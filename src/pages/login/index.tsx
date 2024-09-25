@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 import { Box } from '@mui/material'
 
 import BlankLayout from 'src/@core/layouts/BlankLayout'
-import LoginCard from 'src/components/cards/LoginCard'
+import LoginCard from 'src/pages/login/components/cards/LoginCard'
 import AuthIllustrationV1Wrapper from 'src/views/pages/auth/AuthIllustrationV1Wrapper'
 
 import useAuth from 'src/hooks/useAuth'

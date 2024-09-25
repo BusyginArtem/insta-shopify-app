@@ -7,6 +7,7 @@ interface IProductDBAdapter {
   saveProducts: (products: ProductType[]) => Promise<void>
   getProductCount: ({ shopId }: { shopId: string }) => Promise<number>
   clearProductsDB: () => Promise<void>
+  checkProductExistence: ({ instagramId }: { instagramId: string }) => Promise<boolean>
   productService: Service
 }
 
@@ -18,7 +19,11 @@ class ProductDBAdapter implements IProductDBAdapter {
   }
 
   async getProductList({ shopId }: { shopId: string }): Promise<ProductType[]> {
-    return await this.productService.getAllByShopId({ shopId })
+    if (this.productService.getAllByShopId) {
+      return await this.productService.getAllByShopId({ shopId })
+    }
+
+    return []
   }
 
   async saveProducts(products: ProductType[]) {
@@ -26,13 +31,25 @@ class ProductDBAdapter implements IProductDBAdapter {
   }
 
   async getProductCount({ shopId }: { shopId: string }): Promise<number> {
-    return await this.productService.getCount({ shopId })
+    if (this.productService.getCount) {
+      return await this.productService.getCount({ shopId })
+    }
+
+    return 0
   }
 
   async clearProductsDB(): Promise<void> {
     if (this.productService.clear) {
       await this.productService.clear()
     }
+  }
+
+  async checkProductExistence({ instagramId }: { instagramId: string }): Promise<boolean> {
+    if (this.productService.isStored) {
+      return await this.productService.isStored({ instagramId })
+    }
+
+    return false
   }
 }
 

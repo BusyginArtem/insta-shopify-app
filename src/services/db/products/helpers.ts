@@ -10,7 +10,6 @@ import type { InstagramPostType, ProductType, Shop } from 'src/types'
 
 // ** Hooks
 import useFirebaseStorage from 'src/hooks/useFirebaseStorage'
-import useFacebook from 'src/hooks/useFacebook'
 import { FormatProductsType } from './types'
 
 const STORAGE_PRODUCTS = 'products'
@@ -104,10 +103,8 @@ export const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], sho
   }
 }
 
-export const formatProducts = async ({ shop, instagramAccountId, userId, facebookAccessToken }: FormatProductsType) => {
-  const facebook = useFacebook(facebookAccessToken)
+export const formatProducts = async ({ shop, userId, posts }: FormatProductsType) => {
   const shopId = shop.id
-  const posts: InstagramPostType[] = await facebook.getInstagramPosts(instagramAccountId)
   let formattedProducts = posts.map(post => formatProduct(post, shopId, userId))
 
   formattedProducts = await Promise.all(

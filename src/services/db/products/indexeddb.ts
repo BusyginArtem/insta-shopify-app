@@ -8,6 +8,8 @@ import { ProductType } from 'src/types'
 const PRODUCTS_DB = 'products'
 const PRODUCTS_DB_SHOP_ID_KEY_PATH = 'shopId'
 const PRODUCTS_DB_SHOP_ID_FIELD_NAME = 'by_shop_id'
+const PRODUCTS_DB_INSTAGRAM_ID_FIELD_NAME = 'by_instagram_id'
+const PRODUCTS_DB_PRODUCT_INSTAGRAM_ID_FIELD_PATH = 'instagramId'
 class IndexedDBService implements Service {
   private static instance: IndexedDBService
   private dbName = 'insta-shop-db'
@@ -65,6 +67,9 @@ class IndexedDBService implements Service {
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
           store.createIndex(PRODUCTS_DB_SHOP_ID_FIELD_NAME, PRODUCTS_DB_SHOP_ID_KEY_PATH, { unique: false })
+          store.createIndex(PRODUCTS_DB_INSTAGRAM_ID_FIELD_NAME, PRODUCTS_DB_PRODUCT_INSTAGRAM_ID_FIELD_PATH, {
+            unique: true
+          })
         }
       }
     })
@@ -94,7 +99,6 @@ class IndexedDBService implements Service {
 
     for (const product of products) {
       await new Promise<void>((resolve, reject) => {
-        console.log('%c product', 'color: green; font-weight: bold;', product)
         const request = store.add({ id: v4(), ...product })
 
         request.onsuccess = () => resolve()
@@ -110,10 +114,10 @@ class IndexedDBService implements Service {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
 
-      const getRequest = store.get(key)
+      const request = store.get(key)
 
-      getRequest.onsuccess = () => {
-        const existingItem = getRequest.result
+      request.onsuccess = () => {
+        const existingItem = request.result
 
         if (existingItem) {
           // Merge updated fields with existing fields if needed
@@ -128,7 +132,7 @@ class IndexedDBService implements Service {
         }
       }
 
-      getRequest.onerror = () => reject('Failed to retrieve product for update')
+      request.onerror = () => reject('Failed to retrieve product for update')
     })
   }
 
@@ -168,6 +172,33 @@ class IndexedDBService implements Service {
 
       request.onsuccess = () => resolve()
       request.onerror = () => reject(`Failed to delete item with key ${key}`)
+    })
+  }
+
+  public async isStored({ instagramId }: { instagramId: string }): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      if (!this.db) return reject('Database is not initialized')
+
+      const transaction = this.db.transaction([this.storeName], 'readonly')
+      const store = transaction.objectStore(this.storeName)
+      const index = store.index(PRODUCTS_DB_INSTAGRAM_ID_FIELD_NAME)
+
+      const request = index.get(instagramId)
+
+      request.onsuccess = () => {
+        const result = request.result
+
+        if (result) {
+          resolve(true)
+        } else {
+          resolve(false)
+        }
+      }
+
+      request.onerror = () => {
+        console.error(`Failed to find item with key ${instagramId}`)
+        reject()
+      }
     })
   }
 

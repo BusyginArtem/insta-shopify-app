@@ -1,5 +1,5 @@
 // ** Toolkit imports
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, createAsyncThunk } from '@reduxjs/toolkit'
 
 // ** Redux
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
@@ -23,5 +23,11 @@ export type AppDispatch = typeof store.dispatch
 
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector
+// export const createAppAsyncThunk = createAsyncThunk.withTypes<{
+//   state: RootState
+//   dispatch: AppDispatch
+//   rejectValue: string
+//   // extra: { s: string; n: number }
+// }>()
 
 export default store

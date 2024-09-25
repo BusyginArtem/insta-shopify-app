@@ -9,7 +9,7 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Store
 import { useAppDispatch, useTypedSelector } from 'src/store'
-import { fetchDBProducts, fetchShopifyProducts, selectProductsError } from 'src/store/products'
+import { fetchDBProducts, fetchShopifyInstagramProducts, selectProductsError } from 'src/store/products'
 
 type Props = {
   children: ReactNode
@@ -23,13 +23,18 @@ export default function ProductsLayout({ children }: Props) {
   const error = useTypedSelector(selectProductsError)
 
   useEffect(() => {
-    if (auth.shop?.id) {
-      const dbPromise = dispatch(fetchDBProducts({ shopId: auth.shop.id }))
-      const shopifyPromise = dispatch(fetchShopifyProducts())
+    let dbPromise: any = null
+    let shopifyPromise: any = null
 
-      return () => {
-        dbPromise.abort()
-        shopifyPromise.abort()
+    if (auth.shop?.id) {
+      dbPromise = dispatch(fetchDBProducts({ shopId: auth.shop.id }))
+      shopifyPromise = dispatch(fetchShopifyInstagramProducts())
+    }
+
+    return () => {
+      if (auth.shop?.id) {
+        dbPromise?.abort()
+        shopifyPromise?.abort()
       }
     }
   }, [auth.shop?.id])

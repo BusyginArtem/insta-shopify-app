@@ -37,17 +37,20 @@ query {
   }
 }`
 
-const createProduct = (product: ProductType) => `
+export const createProduct = (product: ProductType) => `
 mutation {
   productCreate(input: {
-    title: "${product.title}",
-    bodyHtml: "${product.description}",
-    productType: "${product.type}",
-    vendor: "${product.metaTitle}"
+    title: "${product.title || 'Product 1'}"
+    bodyHtml: "${product.description || 'Product 1 description'}"
+    productType: "${product.type}"
+    vendor: "${product.metaTitle || 'Product 1 vendor'}"
+  }, media: {
+    originalSource: "${product.images[0]}"
+    alt: "${product.title || 'Product 1'}"
+    mediaContentType: IMAGE
   }) {
     product {
       id
-      title
     }
     userErrors {
       field
@@ -56,7 +59,7 @@ mutation {
   }
 }`
 
-const metafieldMutation = (productId: string, instagramId: string) => `
+export const metafieldMutation = (productId: string, instagramId: string) => `
 mutation {
   metafieldsSet(metafields: [
     {
