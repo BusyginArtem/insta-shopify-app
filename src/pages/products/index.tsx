@@ -38,7 +38,7 @@ const status = {
   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
 } as const
 
-type RowProps = { row: ProductType }
+type RowProps = { row: ProductType & { shopifyId?: string } }
 
 const renderProduct = (row: ProductType) => {
   if (row.thumbnail) {
@@ -123,16 +123,24 @@ const columns = [
     headerName: 'Actions',
     renderCell: ({ row }: RowProps) => {
       return (
-        <Button
-          size='small'
-          variant='outlined'
-          color='secondary'
-          onClick={() => {
-            window.open(row.permalink, '_blank')?.focus()!
-          }}
-        >
-          Go to IG
-        </Button>
+        <Stack flexDirection='row' gap={2}>
+          {row.shopifyId && (
+            <Button size='small' variant='outlined' color='secondary' onClick={() => {}}>
+              Go to Shopify
+            </Button>
+          )}
+
+          <Button
+            size='small'
+            variant='outlined'
+            color='secondary'
+            onClick={() => {
+              window.open(row.permalink, '_blank')?.focus()!
+            }}
+          >
+            Go to IG
+          </Button>
+        </Stack>
       )
     }
   }

@@ -1,11 +1,11 @@
 // ** Third party imports
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit'
 
 // ** Constants
 import { REQUEST_STATUTES } from 'src/configs/constants'
 
 // ** Types
-import type { InstagramPostType, ProductType, RequestStatusTypes } from 'src/types'
+import type { InstagramPostType, ProductType, RequestStatusTypes, ShopifyEdge, ShopifyProduct } from 'src/types'
 import { AppDispatch, RootState } from '.'
 import type { SaveDBProductsType } from 'src/services/db/products/types'
 import type { GridRowId } from '@mui/x-data-grid'
@@ -18,8 +18,9 @@ import ProductDBAdapter from 'src/services/db/products/adapter'
 // ** Helpers
 import { isError, formatProducts } from 'src/services/db/products/helpers'
 import shopifyAdminFetch from 'src/utils/shopifyAdminFetch'
-import { createProduct, metafieldMutation, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
+import { createProduct, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
 import useFacebook from 'src/hooks/useFacebook'
+// import { getInstagramIDsFromShopifyProducts } from './helpers'
 
 // const dbAdapter = new ProductDBAdapter(FirestoreService)
 const dbAdapter = new ProductDBAdapter(IndexedDBService)
@@ -38,10 +39,25 @@ export const fetchDBProducts = createAppAsyncThunk('products/fetchDBItems', asyn
 
 // ** Fetch Shopify products
 export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetchShopifyItems', async () => {
-  const { data: products } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
-  console.log('%c response', 'color: green; font-weight: bold;', products)
+  const { data } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
 
-  return []
+  // TODO add infinity request to get all products
+  const products = data.products.edges
+
+  const shopifyStoredProducts = products
+    .map((product: ShopifyEdge) => {
+      if (product.node.metafields.edges[0]?.node?.value) {
+        return {
+          shopifyProductId: product.node.id,
+          instagramId: product.node.metafields.edges[0]?.node?.value
+        }
+      }
+
+      return null
+    })
+    .filter((product: any) => product)
+
+  return shopifyStoredProducts
 })
 
 // ** Save products
@@ -95,25 +111,30 @@ export const addToShopProducts = createAppAsyncThunk(
 
     try {
       const selectedProductsData = products.data.client.filter(product => productIds.includes(product.id as string))
-      console.log('%c selectedProductsData', 'color: red; font-weight: bold;', selectedProductsData)
-      console.log('%c productIds', 'color: green; font-weight: bold;', productIds)
+      const instagramIDs: ShopifyProduct[] = []
 
       await Promise.all(
         selectedProductsData.map(async product => {
-          const productCreateResponse = await shopifyAdminFetch({ query: createProduct(product) })
-          console.log('%c productCreateResponse', 'color: green; font-weight: bold;', productCreateResponse)
+          const { data } = await shopifyAdminFetch({ query: createProduct(product) })
+          console.log('%c data', 'color: green; font-weight: bold;', data)
 
-          const productId = productCreateResponse?.data?.productCreate?.product?.id
+          // const productId = data?.data?.productCreate?.product?.id
 
-          if (productId) {
-            const metafieldResponse = await shopifyAdminFetch({
-              query: metafieldMutation(productId, product.instagramId)
-            })
+          // if (productId) {
+          //   const metafieldResponse = await shopifyAdminFetch({
+          //     query: metafieldMutation(productId, product.instagramId)
+          //   })
 
-            console.log('%c metafieldResponse', 'color: green; font-weight: bold;', metafieldResponse)
-          }
+          //   console.log('%c metafieldResponse', 'color: green; font-weight: bold;', metafieldResponse)
+          // }
+          instagramIDs.push({
+            instagramId: product.instagramId,
+            shopifyProductId: data.productCreate.product.id
+          })
         })
       )
+
+      return instagramIDs
     } catch (error) {
       console.log('%c error', 'color: red; font-weight: bold;', error)
     }
@@ -123,7 +144,7 @@ export const addToShopProducts = createAppAsyncThunk(
 type ProductsState = {
   data: {
     client: ProductType[]
-    shopify: ProductType[]
+    shopify: ShopifyProduct[]
   }
   status: {
     client: RequestStatusTypes
@@ -221,12 +242,39 @@ export const productsSlice = createSlice({
 
       state.status.client = REQUEST_STATUTES.REJECTED
     })
+    builder.addCase(addToShopProducts.pending, state => {
+      state.status.shopify = REQUEST_STATUTES.PENDING
+      state.error = null
+    })
+    builder.addCase(addToShopProducts.fulfilled, (state, action) => {
+      state.data.shopify = [...state.data.shopify, ...(action.payload as ShopifyProduct[])]
+      state.status.shopify = REQUEST_STATUTES.RESOLVED
+    })
+    builder.addCase(addToShopProducts.rejected, (state, action) => {
+      if (isError(action.error)) {
+        state.error = action.error
+      } else if (action.error.message) {
+        state.error = Error(action.error.message)
+      } else {
+        state.error = Error('Something went wrong!')
+      }
+
+      state.status.shopify = REQUEST_STATUTES.REJECTED
+    })
   }
 })
 
 export const selectClientProductsData = (state: RootState) => state.products.data.client
+export const selectShopifyProducts = (state: RootState) => state.products.data.shopify
 export const selectFetchClientProductsStatus = (state: RootState) => state.products.status.client
 export const selectProductsError = (state: RootState) => state.products.error
+
+export const select = createSelector(selectClientProductsData, selectShopifyProducts, (products, shopifyProducts) =>
+  products.map(product => {
+    if (product.instagramId === shopifyProducts) {
+    }
+  })
+)
 
 // export const { formatProducts } = productsSlice.actions
 

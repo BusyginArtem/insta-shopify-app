@@ -120,3 +120,23 @@ export type PostContent = {
 }
 
 export type GeneratedContent = PostContent[]
+
+type ShopifyEdgeMetaFieldNode = {
+  node: {
+    key: 'instagram_id'
+    namespace: 'product_origin'
+    value: 'string'
+  }
+}
+
+export type ShopifyEdge = {
+  cursor: string
+  node: {
+    id: 'string'
+    metafields: {
+      edges: ShopifyEdgeMetaFieldNode[]
+    }
+  }
+}
+
+export type ShopifyProduct = { shopifyProductId: string; instagramId: string }

@@ -141,8 +141,11 @@ class IndexedDBService implements Service {
       if (!this.db) return reject('Database is not initialized')
 
       const transaction = this.db.transaction([this.storeName], 'readonly')
+      console.log('%c transaction', 'color: green; font-weight: bold;', transaction)
       const store = transaction.objectStore(this.storeName)
+      console.log('%c store', 'color: green; font-weight: bold;', store)
       const request = store.count()
+      console.log('%c request', 'color: green; font-weight: bold;', request)
 
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject('Failed to get count')

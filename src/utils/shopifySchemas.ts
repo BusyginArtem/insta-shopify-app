@@ -1,19 +1,11 @@
 import { ProductType } from 'src/types'
+import { v4 } from 'uuid'
 
 const productsGql = `
   cursor
   node {
-    title
-    handle
     id
-    images(first: 1) {
-      edges {
-        node {
-          src
-        }
-      }
-    }
-    metafields(namespace: "instagram_id", first: 1) {
+    metafields(namespace: "product_origin", first: 1) {
       edges {
         node {
           namespace
@@ -24,10 +16,13 @@ const productsGql = `
     }
   }
 `
-
+// products(first: 50, query: "metafields.namespace:product_origin AND metafields.key:type AND metafields.value:instagram") {
+//   products(first: 50, query: "metafields.namespace:product_origin AND metafields.key:instagram_id") {
+// products(first: 50, query: "metafields:product_origin.type:instagram") {
+//
 export const queryProductsByInstagramOrigin = () => `
 query {
-  products(first: 50, query: "metafield:product_origin.type:instagram") {
+  products(first: 250) {
     pageInfo {
       hasNextPage
     }
@@ -40,13 +35,21 @@ query {
 export const createProduct = (product: ProductType) => `
 mutation {
   productCreate(input: {
-    title: "${product.title || 'Product 1'}"
-    bodyHtml: "${product.description || 'Product 1 description'}"
-    productType: "${product.type}"
-    vendor: "${product.metaTitle || 'Product 1 vendor'}"
+    title: "${product.title}"
+    bodyHtml: "${product.metaDescription}"
+    productType: "${product.category}"
+    handle: "${product.title || 'product_' + v4()}"
+    metafields: [
+      {
+        namespace: "product_origin",
+        key: "instagram_id",
+        type: "single_line_text_field",
+        value: "${product.instagramId}"
+      }
+    ]
   }, media: {
     originalSource: "${product.images[0]}"
-    alt: "${product.title || 'Product 1'}"
+    alt: "${product.title}"
     mediaContentType: IMAGE
   }) {
     product {
@@ -59,34 +62,70 @@ mutation {
   }
 }`
 
-export const metafieldMutation = (productId: string, instagramId: string) => `
-mutation {
-  metafieldsSet(metafields: [
-    {
-      ownerId: "${productId}",
-      namespace: "product_origin",
-      key: "type",
-      type: "single_line_text_field",
-      value: "instagram"
-    },
-    {
-      ownerId: "${productId}",
-      namespace: "product_origin",
-      key: "instagram_id",
-      type: "single_line_text_field",
-      value: "${instagramId}"
-    }
-  ]) {
-    metafields {
-      key
-      value
-    }
-    userErrors {
-      field
-      message
-    }
-  }
-}`
+// export const createProduct = (product: ProductType) => `
+// mutation {
+//   productCreate(input: {
+//     title: "${product.title}"
+//     bodyHtml: "${product.metaDescription}"
+//     productType: "${product.category}"
+//     handle: "${product.title || 'product_' + v4()}"
+//     metafields: [
+//       {
+//         namespace: "product_origin",
+//         key: "type",
+//         type: "single_line_text_field",
+//         value: "instagram"
+//       },
+//       {
+//         namespace: "product_origin",
+//         key: "instagram_id",
+//         type: "single_line_text_field",
+//         value: "${product.instagramId}"
+//       }
+//     ]
+//   }, media: {
+//     originalSource: "${product.images[0]}"
+//     alt: "${product.title}"
+//     mediaContentType: IMAGE
+//   }) {
+//     product {
+//       id
+//     }
+//     userErrors {
+//       field
+//       message
+//     }
+//   }
+// }`
+
+// export const metafieldMutation = (productId: string, instagramId: string) => `
+// mutation {
+//   metafieldsSet(metafields: [
+//     {
+//       ownerId: "${productId}",
+//       namespace: "product_origin",
+//       key: "type",
+//       type: "single_line_text_field",
+//       value: "instagram"
+//     },
+//     {
+//       ownerId: "${productId}",
+//       namespace: "product_origin",
+//       key: "instagram_id",
+//       type: "single_line_text_field",
+//       value: "${instagramId}"
+//     }
+//   ]) {
+//     metafields {
+//       key
+//       value
+//     }
+//     userErrors {
+//       field
+//       message
+//     }
+//   }
+// }`
 
 // export const findProductsByTag = ({ query }) => `
 //   {
