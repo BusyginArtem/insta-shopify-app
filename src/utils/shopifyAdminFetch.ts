@@ -1,4 +1,4 @@
-const SHOPIFY_ADMIN_GRAPHQL_API = 'shopify:admin/api/graphql.json'
+const SHOPIFY_ADMIN_GRAPHQL_API = 'shopify:admin/api/2024-07/graphql.json'
 
 export default async ({
   query,

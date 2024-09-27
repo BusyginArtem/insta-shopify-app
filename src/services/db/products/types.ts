@@ -8,7 +8,7 @@ export interface Service {
   getAllByShopId: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
   save: (products: ProductType[]) => Promise<void>
   getCount: ({ shopId }: { shopId: string }) => Promise<number>
-  edit: (key: string, product: ProductType) => Promise<void>
+  edit: (product: ProductType) => Promise<void>
   clear?: () => Promise<void>
   isStored: ({ instagramId }: { instagramId: string }) => Promise<boolean>
 }

@@ -32,13 +32,58 @@ query {
   }
 }`
 
+export const fetchProductCategoriesTopLevel = () => `
+query {
+  taxonomy {
+    categories(first: 250) {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        node {
+          id
+          fullName
+          name
+          level
+          isRoot
+          isLeaf
+          childrenIds
+        }
+      }
+    }
+  }
+}`
+
+export const fetchProductCategoriesNestedLevel = ({ categoryId }: { categoryId: boolean }) => `
+query {
+  taxonomy {
+    categories(first: 250, childrenOf: "${categoryId}") {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        node {
+          id
+          fullName
+          name
+          level
+          isRoot
+          isLeaf
+          childrenIds
+        }
+      }
+    }
+  }
+}`
+
 export const createProduct = (product: ProductType) => `
 mutation {
   productCreate(input: {
-    title: "${product.title}"
-    bodyHtml: "${product.metaDescription}"
-    productType: "${product.category}"
+    title: "${product.title || 'Product'}"
+    bodyHtml: "${product.metaDescription || ''}"
+    productType: "${product.category || ''}"
     handle: "${product.title || 'product_' + v4()}"
+    category: "gid://shopify/TaxonomyCategory/sg-4-17-2-17"
     metafields: [
       {
         namespace: "product_origin",
@@ -49,7 +94,7 @@ mutation {
     ]
   }, media: {
     originalSource: "${product.images[0]}"
-    alt: "${product.title}"
+    alt: "${product.title || 'Product image'}"
     mediaContentType: IMAGE
   }) {
     product {

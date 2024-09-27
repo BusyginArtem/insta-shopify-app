@@ -11,17 +11,19 @@ import type { SaveDBProductsType } from 'src/services/db/products/types'
 import type { GridRowId } from '@mui/x-data-grid'
 
 // ** Service
-// import FirestoreService from 'src/services/db/products/firestore'
 import IndexedDBService from 'src/services/db/products/indexeddb'
 import ProductDBAdapter from 'src/services/db/products/adapter'
+
+// ** Hooks
+import useFacebook from 'src/hooks/useFacebook'
 
 // ** Helpers
 import { isError, formatProducts } from 'src/services/db/products/helpers'
 import shopifyAdminFetch from 'src/utils/shopifyAdminFetch'
-import { createProduct, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
-import useFacebook from 'src/hooks/useFacebook'
-// import { getInstagramIDsFromShopifyProducts } from './helpers'
+import { createProduct, fetchProductCategoriesTopLevel, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
+import { extractProductId, processProductsByVertexAI } from './helpers'
 
+// NOTE Don't remove
 // const dbAdapter = new ProductDBAdapter(FirestoreService)
 const dbAdapter = new ProductDBAdapter(IndexedDBService)
 
@@ -39,25 +41,32 @@ export const fetchDBProducts = createAppAsyncThunk('products/fetchDBItems', asyn
 
 // ** Fetch Shopify products
 export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetchShopifyItems', async () => {
-  const { data } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
+  let hasNextPage = false
+  let shopifyProducts: ShopifyProduct[] = []
 
-  // TODO add infinity request to get all products
-  const products = data.products.edges
+  do {
+    const { data } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
 
-  const shopifyStoredProducts = products
-    .map((product: ShopifyEdge) => {
-      if (product.node.metafields.edges[0]?.node?.value) {
-        return {
-          shopifyProductId: product.node.id,
-          instagramId: product.node.metafields.edges[0]?.node?.value
+    hasNextPage = data.products.pageInfo.hasNextPage
+    const products = data.products.edges
+
+    const shopifyStoredProducts = products
+      .map((product: ShopifyEdge) => {
+        if (product.node.metafields.edges[0]?.node?.value) {
+          return {
+            shopifyProductId: extractProductId(product.node.id),
+            instagramId: product.node.metafields.edges[0]?.node?.value
+          }
         }
-      }
 
-      return null
-    })
-    .filter((product: any) => product)
+        return null
+      })
+      .filter((product: any) => product)
 
-  return shopifyStoredProducts
+    shopifyProducts = [...shopifyProducts, ...shopifyStoredProducts]
+  } while (hasNextPage)
+
+  return shopifyProducts
 })
 
 // ** Save products
@@ -106,40 +115,45 @@ export const syncDBProducts = createAppAsyncThunk(
 // ** Add to Shopify shop products
 export const addToShopProducts = createAppAsyncThunk(
   'products/addToShopify',
-  async ({ productIds }: { productIds: GridRowId[] }, { getState }) => {
+  async ({ productIds, vertexAIEnabled }: { productIds: GridRowId[]; vertexAIEnabled: boolean }, { getState }) => {
     const { products } = getState()
 
-    try {
-      const selectedProductsData = products.data.client.filter(product => productIds.includes(product.id as string))
-      const instagramIDs: ShopifyProduct[] = []
+    let selectedProductsData = products.data.client.filter(product => productIds.includes(product.id as string))
+    const instagramIDs: ShopifyProduct[] = []
 
-      await Promise.all(
-        selectedProductsData.map(async product => {
-          const { data } = await shopifyAdminFetch({ query: createProduct(product) })
-          console.log('%c data', 'color: green; font-weight: bold;', data)
+    if (vertexAIEnabled) {
+      selectedProductsData = await processProductsByVertexAI(selectedProductsData)
+    }
 
-          // const productId = data?.data?.productCreate?.product?.id
+    await Promise.all(
+      selectedProductsData.map(async product => {
+        const { data } = await shopifyAdminFetch({ query: createProduct(product) })
 
-          // if (productId) {
-          //   const metafieldResponse = await shopifyAdminFetch({
-          //     query: metafieldMutation(productId, product.instagramId)
-          //   })
-
-          //   console.log('%c metafieldResponse', 'color: green; font-weight: bold;', metafieldResponse)
-          // }
+        if (data.productCreate?.product?.id) {
           instagramIDs.push({
             instagramId: product.instagramId,
             shopifyProductId: data.productCreate.product.id
           })
-        })
-      )
+        }
+      })
+    )
 
-      return instagramIDs
-    } catch (error) {
-      console.log('%c error', 'color: red; font-weight: bold;', error)
-    }
+    await dbAdapter.editProducts(selectedProductsData)
+
+    return instagramIDs
   }
 )
+
+const fetchProductCategoriesNestedLevels = ({ rootCategoryId }: { rootCategoryId: boolean }) => {}
+
+// ** Fetch Shopify product categories
+export const fetchProductCategories = createAppAsyncThunk('products/getShopifyProductCategories', async () => {
+  const { data } = await shopifyAdminFetch({
+    query: fetchProductCategoriesTopLevel()
+  })
+
+  return
+})
 
 type ProductsState = {
   data: {
@@ -251,6 +265,7 @@ export const productsSlice = createSlice({
       state.status.shopify = REQUEST_STATUTES.RESOLVED
     })
     builder.addCase(addToShopProducts.rejected, (state, action) => {
+      console.log('%c action', 'color: red; font-weight: bold;', action)
       if (isError(action.error)) {
         state.error = action.error
       } else if (action.error.message) {
@@ -267,13 +282,25 @@ export const productsSlice = createSlice({
 export const selectClientProductsData = (state: RootState) => state.products.data.client
 export const selectShopifyProducts = (state: RootState) => state.products.data.shopify
 export const selectFetchClientProductsStatus = (state: RootState) => state.products.status.client
+export const selectShopifyProductsStatus = (state: RootState) => state.products.status.shopify
 export const selectProductsError = (state: RootState) => state.products.error
 
-export const select = createSelector(selectClientProductsData, selectShopifyProducts, (products, shopifyProducts) =>
-  products.map(product => {
-    if (product.instagramId === shopifyProducts) {
-    }
-  })
+export const selectIntersectedProducts = createSelector(
+  selectClientProductsData,
+  selectShopifyProducts,
+  (products, shopifyProducts) =>
+    products.map(product => {
+      const shopifyProduct = shopifyProducts.find(shopifyProduct => shopifyProduct.instagramId === product.instagramId)
+
+      if (shopifyProduct) {
+        return {
+          ...product,
+          shopifyProductId: shopifyProduct.shopifyProductId
+        }
+      }
+
+      return product
+    })
 )
 
 // export const { formatProducts } = productsSlice.actions

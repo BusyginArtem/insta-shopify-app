@@ -107,6 +107,7 @@ export type ProductType = {
   createdAt: FieldValue
   updatedAt: FieldValue
   thumbnailBase64?: string
+  shopifyProductId?: string
 }
 
 export type RequestStatusTypes = (typeof REQUEST_STATUTES)[keyof typeof REQUEST_STATUTES]

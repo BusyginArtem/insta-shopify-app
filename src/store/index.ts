@@ -1,5 +1,5 @@
 // ** Toolkit imports
-import { configureStore, createAsyncThunk } from '@reduxjs/toolkit'
+import { configureStore } from '@reduxjs/toolkit'
 
 // ** Redux
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'

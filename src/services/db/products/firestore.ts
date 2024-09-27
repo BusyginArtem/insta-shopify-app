@@ -37,8 +37,8 @@ class FirestoreService implements Service {
     }
   }
 
-  public async edit(key: string, productData: ProductType): Promise<void> {
-    const productDocRef = doc(this.db, PRODUCTS_COLLECTION, key)
+  public async edit(productData: ProductType): Promise<void> {
+    const productDocRef = doc(this.db, PRODUCTS_COLLECTION, productData.id!)
 
     await updateDoc(productDocRef, productData)
   }

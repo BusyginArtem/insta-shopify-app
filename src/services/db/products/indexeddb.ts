@@ -107,28 +107,28 @@ class IndexedDBService implements Service {
     }
   }
 
-  public async edit(key: IDBValidKey, updatedItem: ProductType): Promise<void> {
+  public async edit(product: ProductType): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.db) return reject('Database is not initialized')
 
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
 
-      const request = store.get(key)
+      const request = store.get(product.id!)
 
       request.onsuccess = () => {
-        const existingItem = request.result
+        const existingProduct = request.result
 
-        if (existingItem) {
+        if (existingProduct) {
           // Merge updated fields with existing fields if needed
-          const updatedRecord = { ...existingItem, ...updatedItem }
+          const updatedRecord = { ...existingProduct, ...product }
 
           const putRequest = store.put(updatedRecord)
 
           putRequest.onsuccess = () => resolve()
           putRequest.onerror = () => reject('Failed to update product')
         } else {
-          reject(`Product with key ${key} not found`)
+          reject(`Product with key ${product.id} not found`)
         }
       }
 
@@ -141,11 +141,8 @@ class IndexedDBService implements Service {
       if (!this.db) return reject('Database is not initialized')
 
       const transaction = this.db.transaction([this.storeName], 'readonly')
-      console.log('%c transaction', 'color: green; font-weight: bold;', transaction)
       const store = transaction.objectStore(this.storeName)
-      console.log('%c store', 'color: green; font-weight: bold;', store)
       const request = store.count()
-      console.log('%c request', 'color: green; font-weight: bold;', request)
 
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject('Failed to get count')

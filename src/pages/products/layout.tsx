@@ -9,7 +9,12 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Store
 import { useAppDispatch, useTypedSelector } from 'src/store'
-import { fetchDBProducts, fetchShopifyInstagramProducts, selectProductsError } from 'src/store/products'
+import {
+  fetchDBProducts,
+  fetchProductCategories,
+  fetchShopifyInstagramProducts,
+  selectProductsError
+} from 'src/store/products'
 
 type Props = {
   children: ReactNode
@@ -41,6 +46,7 @@ export default function ProductsLayout({ children }: Props) {
 
   useEffect(() => {
     if (error?.message) {
+      console.log('%c [ERROR]:', 'color: red; font-weight: bold;', error)
       toast.error(error.message)
     }
   }, [error?.message])

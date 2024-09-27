@@ -2,8 +2,14 @@
 import { ReactNode, useState } from 'react'
 
 // ** MUI Components
-import { DataGrid, GridRowId } from '@mui/x-data-grid'
-import { Card, Grid, Box, Button, CardHeader, Typography, Stack } from '@mui/material'
+import {
+  DataGrid,
+  GridRowId,
+  GridValidRowModel,
+  GridRowParams,
+  GRID_CHECKBOX_SELECTION_COL_DEF
+} from '@mui/x-data-grid'
+import { Card, Grid, Box, Button, CardHeader, Typography, Stack, IconButton, Checkbox } from '@mui/material'
 
 // ** Custom Component Import
 import UserLayout from '../../layouts/UserLayout'
@@ -11,13 +17,15 @@ import ProductsLayout from './layout'
 import Avatar from 'src/@core/components/mui/avatar'
 import Chip from 'src/@core/components/mui/chip'
 import SyncModal from './components/SyncModal'
+import AddToShopModal from './components/AddToShopModal'
 
 // ** Product slice
 import {
-  selectFetchClientProductsStatus,
-  selectClientProductsData,
+  fetchDBProducts,
   addToShopProducts,
-  fetchDBProducts
+  selectIntersectedProducts,
+  selectFetchClientProductsStatus,
+  selectShopifyProductsStatus
 } from 'src/store/products'
 import { useAppDispatch, useTypedSelector } from 'src/store'
 
@@ -26,6 +34,9 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Types
 import type { ProductType } from 'src/types'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
 
 // ** Constants
 import { PRODUCT_STATUSES, REQUEST_STATUTES } from 'src/configs/constants'
@@ -38,7 +49,7 @@ const status = {
   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
 } as const
 
-type RowProps = { row: ProductType & { shopifyId?: string } }
+type RowProps = { row: ProductType }
 
 const renderProduct = (row: ProductType) => {
   if (row.thumbnail) {
@@ -47,6 +58,20 @@ const renderProduct = (row: ProductType) => {
 }
 
 const columns = [
+  {
+    ...GRID_CHECKBOX_SELECTION_COL_DEF,
+    renderCell: ({ row, ...props }: RowProps & GridValidRowModel) => {
+      return (
+        <Checkbox
+          disabled={!!row.shopifyProductId}
+          checked={row.shopifyProductId ? true : props.value}
+          onClick={() => {
+            props.api.selectRow(row.id, !props.value)
+          }}
+        />
+      )
+    }
+  },
   {
     field: 'thumbnail',
     minWidth: 60,
@@ -117,29 +142,33 @@ const columns = [
     }
   },
   {
-    flex: 0.125,
-    minWidth: 120,
+    flex: 0.2,
+    minWidth: 200,
     field: 'actions',
     headerName: 'Actions',
     renderCell: ({ row }: RowProps) => {
       return (
         <Stack flexDirection='row' gap={2}>
-          {row.shopifyId && (
-            <Button size='small' variant='outlined' color='secondary' onClick={() => {}}>
-              Go to Shopify
-            </Button>
-          )}
-
-          <Button
-            size='small'
-            variant='outlined'
-            color='secondary'
+          <IconButton
             onClick={() => {
               window.open(row.permalink, '_blank')?.focus()!
             }}
           >
-            Go to IG
-          </Button>
+            <Icon icon='skill-icons:instagram' fontSize={18} />
+          </IconButton>
+
+          {row.shopifyProductId && (
+            <IconButton>
+              <Box
+                component='a'
+                href={`shopify://admin/products/${row.shopifyProductId}`}
+                target='_blank'
+                sx={{ width: 20, height: 20 }}
+              >
+                <Icon icon='logos:shopify' fontSize={20} />
+              </Box>
+            </IconButton>
+          )}
         </Stack>
       )
     }
@@ -150,12 +179,14 @@ const ProductsPage = () => {
   const [selectionModel, setSelectionModel] = useState<GridRowId[]>([])
   const [page, setPage] = useState(0)
   const [syncModalOpened, setSyncModalOpened] = useState(false)
+  const [addToShopModalOpened, setAddToShopModalOpened] = useState(false)
 
   // ** Hooks
   const { shop } = useAuth()
 
-  const products = useTypedSelector(selectClientProductsData)
-  const queryStatus = useTypedSelector(selectFetchClientProductsStatus)
+  const products = useTypedSelector(selectIntersectedProducts)
+  const clientQueryStatus = useTypedSelector(selectFetchClientProductsStatus)
+  const shopifyQueryStatus = useTypedSelector(selectShopifyProductsStatus)
 
   const dispatch = useAppDispatch()
 
@@ -177,21 +208,35 @@ const ProductsPage = () => {
     })
   }
 
-  const handleAddProductsToShop = () => {
-    dispatch(addToShopProducts({ productIds: selectionModel }))
-  }
-
-  const handleToggleSyncModal = () => {
-    setSyncModalOpened(!syncModalOpened)
+  const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
+    await dispatch(addToShopProducts({ productIds: selectionModel, vertexAIEnabled }))
 
     if (shop?.id) {
       dispatch(fetchDBProducts({ shopId: shop.id }))
     }
+
+    setSelectionModel([])
+    handleToggleAddToShopModal()
+  }
+
+  const handleToggleSyncModal = () => {
+    setSyncModalOpened(!syncModalOpened)
+  }
+
+  const handleToggleAddToShopModal = () => {
+    setAddToShopModalOpened(!addToShopModalOpened)
   }
 
   return (
     <>
       <SyncModal opened={syncModalOpened} onCloseModal={handleToggleSyncModal} />
+
+      <AddToShopModal
+        loading={shopifyQueryStatus === REQUEST_STATUTES.PENDING}
+        opened={addToShopModalOpened}
+        onCloseModal={handleToggleAddToShopModal}
+        onAddProducts={handleAddProductsToShop}
+      />
 
       <Grid container spacing={6.5}>
         <Grid item xs={12}>
@@ -202,14 +247,14 @@ const ProductsPage = () => {
                 <Stack flexDirection='row' gap={3}>
                   <Button
                     size='medium'
-                    variant='contained'
+                    variant='outlined'
                     disabled={!selectionModel.length}
-                    onClick={handleAddProductsToShop}
+                    onClick={handleToggleAddToShopModal}
                   >
                     Add to shop products
                   </Button>
 
-                  <Button size='medium' variant='outlined' onClick={handleToggleSyncModal}>
+                  <Button size='medium' variant='contained' onClick={handleToggleSyncModal}>
                     Synchronize with Instagram
                   </Button>
                 </Stack>
@@ -221,23 +266,41 @@ const ProductsPage = () => {
               rowHeight={62}
               rows={products}
               columns={columns}
-              disableRowSelectionOnClick
+              // disableRowSelectionOnClick
               pageSizeOptions={[PAGE_SIZE]}
               paginationModel={{
                 page,
                 pageSize: PAGE_SIZE
               }}
               onPaginationModelChange={({ page }) => setPage(page)}
-              loading={queryStatus === REQUEST_STATUTES.PENDING}
+              loading={clientQueryStatus === REQUEST_STATUTES.PENDING}
               checkboxSelection
               onRowSelectionModelChange={handleSelectRows}
               rowSelectionModel={selectionModel}
+              isRowSelectable={(params: GridRowParams) => !params.row.shopifyProductId}
               sx={{
                 // disable cell selection style
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
+                },
+                // pointer cursor on ALL rows
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                },
+                '& .MuiDataGrid-row': {
+                  userSelect: 'none'
                 }
               }}
+              // slots={{
+              //   baseCheckbox: Checkbox
+              // }}
+              // slotProps={{
+              //   baseCheckbox: {
+              // disabled: true
+              // checkedIcon: <Checkbox checked={true} />,
+              // icon: <Checkbox checked={true} />
+              //   }
+              // }}
             />
           </Card>
         </Grid>

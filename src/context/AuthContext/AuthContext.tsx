@@ -33,22 +33,15 @@ import { ActionTypes } from './actionTypes'
 
 // ** Constants
 import { APP_ROUTES } from 'src/configs/constants'
-// import { GenerateContentRequest, InlineDataPart, Part, TextPart } from 'firebase/vertexai-preview'
 import { useAppDispatch } from 'src/store'
 
 // ** Store actions
 import { saveDBProducts } from 'src/store/products'
 
-// ** Services
-// import IndexedDBService from 'src/services/db/products/indexeddb'
-// import ProductDBAdapter from 'src/services/db/products/adapter'
-
 const COLLECTION_SHOPS = 'shops'
 
 // ** Helpers
 const isError = (err: unknown): err is Error => err instanceof Error
-
-// const dbAdapter = new ProductDBAdapter(IndexedDBService)
 
 // ** Defaults
 const initialState: AuthValuesType = {
@@ -78,9 +71,6 @@ const AuthProvider = ({ children }: Props) => {
   const router = useRouter()
   const firebaseAuth = useFirebaseAuth()
   const firestore = useFirebaseFirestore()
-  // const facebook = useFacebook(state.facebookAccessToken)
-  // const vertex = useFirebaseVertexAI()
-  // const storage = useFirebaseStorage()
 
   // ** If the Instagram account exists store it in the context otherwise redirect to the setup Instagram account page
   useEffect(() => {
@@ -108,7 +98,9 @@ const AuthProvider = ({ children }: Props) => {
           if (userShop) {
             dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: userShop })
 
-            router.replace(APP_ROUTES.MAIN)
+            if (router.pathname === APP_ROUTES.INSTAGRAM_ACCOUNT) {
+              router.replace(APP_ROUTES.MAIN)
+            }
           } else {
             router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
           }
@@ -121,13 +113,10 @@ const AuthProvider = ({ children }: Props) => {
 
           toast.error(`Authorization failed`)
         }
-        // finally {
-        //   dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
-        // }
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.selectedInstagramAccount?.id, state.user?.uid])
+  }, [state.selectedInstagramAccount?.id, state.user?.uid, router.pathname])
 
   // ** If a user has Facebook access in the localStorage they are signed in to Firestore to get access to a shop entity and store it in the context
   useEffect(() => {
@@ -283,129 +272,9 @@ const AuthProvider = ({ children }: Props) => {
 
     dispatch({ type: ActionTypes.STORE_INSTAGRAM_ACCOUNT, payload: account })
 
-    // Comment! This replace is being handled by useEffect
+    // NOTE Comment! This replace is being handled by useEffect
     // router.replace(APP_ROUTES.INSTAGRAM_ACCOUNT_SETUP)
   }
-
-  // const saveProducts = async (products: ProductType[]) => {
-  //   for (const product of products) {
-  //     await addDoc(collection(firestore, COLLECTION_PRODUCTS), product)
-  //   }
-  // }
-
-  // async function uploadImage(imageUrl: string, shopId: string) {
-  //   try {
-  //     const filename = `${v4()}.jpg`
-  //     const productImagesRef = ref(storage, STORAGE_PRODUCTS)
-  //     const productImagesShopRef = ref(productImagesRef, `${shopId}`)
-  //     const productImageRef = ref(productImagesShopRef, `${filename}`)
-  //     const imageBase64 = await getImageBase64(imageUrl)
-
-  //     const productFileSnapshot = await uploadString(productImageRef, imageBase64, 'base64', {
-  //       contentType: 'image/jpeg'
-  //     })
-
-  //     const productImageUrl = await getDownloadURL(productFileSnapshot.ref)
-
-  //     return productImageUrl
-  //   } catch (error) {
-  //     console.log(error)
-
-  //     return ''
-  //   }
-  // }
-
-  // const formatAndStoreProducts = async (shop: Shop): Promise<string> => {
-  //   if (!state.selectedInstagramAccount?.id) {
-  //     return Promise.reject('Instagram account is missed!')
-  //   }
-
-  //   const shopId = shop.id
-
-  //   try {
-  //     const posts: InstagramPostType[] = await facebook.getInstagramPosts(state.selectedInstagramAccount.id.toString())
-  //     let formattedProducts = posts.map(post => formatProduct(post, shopId, state.user?.uid!))
-
-  //     formattedProducts = await Promise.all(
-  //       formattedProducts.map(async formattedProduct => {
-  //         if (formattedProduct.thumbnail) {
-  //           formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
-  //           // upload thumbnail
-  //           formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
-  //         }
-
-  //         if (formattedProduct.images) {
-  //           formattedProduct.images = await Promise.all(
-  //             formattedProduct.images.map(async image => {
-  //               return await uploadImage(image, shopId)
-  //             })
-  //           )
-  //         }
-
-  //         return formattedProduct
-  //       })
-  //     )
-
-  //     if (!formattedProducts.length) {
-  //       return Promise.resolve('Instagram posts not found!')
-  //     }
-
-  //     const parts: (InlineDataPart | TextPart)[] = [
-  //       ...formattedProducts.map(fp => ({
-  //         inlineData: {
-  //           data: fp.thumbnailBase64 as string,
-  //           mimeType: 'image/jpeg'
-  //         }
-  //       })),
-  //       {
-  //         text: `
-  //           I provide you with images of products. For each image you need to focus and understood what product on the image. Write me a title, description, meta title,
-  //           meta description and category for each product for publishing this product on my online store.
-  //           Choose mo relevant category from list that I provide.
-  //           Provide me with valid json array format without any other data for each product and save product's order that I sent.
-  //         `
-  //       }
-  //     ]
-
-  //     const requestToVertexAI = {
-  //       contents: [
-  //         {
-  //           role: 'user',
-  //           parts
-  //         }
-  //       ]
-  //     }
-
-  //     const result = await vertex.model.generateContent(requestToVertexAI as GenerateContentRequest)
-  //     let parsedContent: GeneratedContent = []
-
-  //     if (result.response.candidates?.length) {
-  //       parsedContent = JSON.parse(
-  //         result.response.candidates[0].content.parts[0].text?.replace('```json', '').replace('```', '')!
-  //       )
-  //     }
-
-  //     formattedProducts = formattedProducts.map((fp, fpIndex) => {
-  //       delete fp.thumbnailBase64
-
-  //       fp.title = parsedContent[fpIndex].title || fp.title
-  //       fp.description = parsedContent[fpIndex].description || fp.description
-  //       fp.category = parsedContent[fpIndex].category || fp.category
-  //       fp.metaTitle = parsedContent[fpIndex].meta_title || fp.metaTitle
-  //       fp.metaDescription = parsedContent[fpIndex].meta_description || fp.metaDescription
-
-  //       return fp
-  //     })
-
-  //     await saveProducts(formattedProducts)
-
-  //     return Promise.resolve('Success!')
-  //   } catch (error) {
-  //     console.log('%c error', 'color: red; font-weight: bold;', error)
-
-  //     return Promise.reject('Something went wrong!')
-  //   }
-  // }
 
   const handleSetUp = async (data: InstagramSetupFormValues) => {
     try {
@@ -438,11 +307,10 @@ const AuthProvider = ({ children }: Props) => {
 
         shop = await getShop(state.selectedInstagramAccount.id.toString())
       }
-      console.log('%c shop', 'color: green; font-weight: bold;', shop)
+
       if (shop) {
         dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_SUCCESS, payload: shop })
 
-        // await formatAndStoreProducts(shop)
         appDispatch(
           saveDBProducts({
             shop,
@@ -457,7 +325,7 @@ const AuthProvider = ({ children }: Props) => {
         })
       }
 
-      router.replace('/')
+      router.replace(APP_ROUTES.MAIN)
     } catch (error) {
       if (isError(error)) {
         dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_FAILURE, payload: error })
@@ -465,9 +333,6 @@ const AuthProvider = ({ children }: Props) => {
         console.log(error)
       }
     }
-    // finally {
-    //   dispatch({ type: ActionTypes.STORE_SHOP_ENTITY_PROCESSED })
-    // }
   }
 
   const values = {

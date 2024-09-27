@@ -19,7 +19,7 @@ import useAuth from 'src/hooks/useAuth'
 import themeConfig from 'src/configs/themeConfig'
 
 // ** Store
-import { syncDBProducts } from 'src/store/products'
+import { fetchDBProducts, syncDBProducts } from 'src/store/products'
 import { useAppDispatch } from 'src/store'
 
 type Props = {
@@ -45,8 +45,12 @@ const SyncModal = ({ opened, onCloseModal }: Props) => {
           })
         )
 
-        onCloseModal()
-        toast.success('Products have been synchronized successfully')
+        await appDispatch(fetchDBProducts({ shopId: shop.id }))
+
+        setTimeout(() => {
+          onCloseModal()
+          toast.success('Products have been synchronized successfully')
+        }, 500)
       })()
     }
   }, [opened, facebookAccessToken, shop?.id, user?.uid, selectedInstagramAccount?.id])
@@ -102,17 +106,6 @@ const SyncModal = ({ opened, onCloseModal }: Props) => {
               }}
             >
               Please wait while we setup your shop.
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.secondary',
-                mb: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              Usually it takes from 2 to 5 minutes.
             </Typography>
           </Box>
           <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
