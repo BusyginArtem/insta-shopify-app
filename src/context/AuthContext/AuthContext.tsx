@@ -49,6 +49,7 @@ const initialState: AuthValuesType = {
   user: null,
   error: null,
   loading: false,
+  isReady: false,
   facebookAccessToken: '',
   selectedInstagramAccount: null,
   onLogin: () => Promise.resolve(),

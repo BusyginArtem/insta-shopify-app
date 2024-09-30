@@ -34,7 +34,7 @@ const SyncModal = ({ opened, onCloseModal }: Props) => {
   const appDispatch = useAppDispatch()
 
   useEffect(() => {
-    if (opened && user?.uid && shop?.id && selectedInstagramAccount?.id) {
+    if (opened && user?.uid && shop?.id && selectedInstagramAccount?.id && facebookAccessToken) {
       ;(async () => {
         await appDispatch(
           syncDBProducts({
@@ -49,9 +49,14 @@ const SyncModal = ({ opened, onCloseModal }: Props) => {
 
         setTimeout(() => {
           onCloseModal()
-          toast.success('Products have been synchronized successfully')
+          toast.success('Products have been synchronized successfully.')
         }, 500)
       })()
+    }
+
+    if (opened && !facebookAccessToken) {
+      onCloseModal()
+      toast.error('Something went wrong! Try again or refresh your token.')
     }
   }, [opened, facebookAccessToken, shop?.id, user?.uid, selectedInstagramAccount?.id])
 

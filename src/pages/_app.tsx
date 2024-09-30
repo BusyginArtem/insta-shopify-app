@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode, useEffect } from 'react'
+import { ReactNode } from 'react'
 
 // ** Next Imports
 import Head from 'next/head'
@@ -38,9 +38,8 @@ import { AuthProvider } from 'src/context/AuthContext/AuthContext'
 import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsContext'
 
 // ** Store
-import store, { useAppDispatch } from 'src/store'
+import store from 'src/store'
 import { Provider } from 'react-redux'
-import { fetchProductCategories } from 'src/store/products'
 
 // ** Styled Components
 import ReactHotToast from 'src/@core/styles/libs/react-hot-toast'
@@ -101,18 +100,6 @@ const Guard = ({ children, authGuard, guestGuard }: GuardProps) => {
 
 // ** Configure JSS & ClassName
 const App = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: ExtendedAppProps) => {
-  const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    let categoriesPromise: any = null
-
-    categoriesPromise = dispatch(fetchProductCategories())
-
-    return () => {
-      categoriesPromise?.abort()
-    }
-  }, [])
-
   // Variables
   const contentHeightFixed = Component.contentHeightFixed ?? false
   const getLayout =

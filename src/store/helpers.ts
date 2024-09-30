@@ -1,13 +1,9 @@
 // ** Types
 import { GenerateContentRequest, InlineDataPart, TextPart } from 'firebase/vertexai-preview'
-import { GeneratedContent, ProductType } from 'src/types'
+import { GeneratedContent, ProductCategories, ProductType } from 'src/types'
 
 // ** Hooks
 import useFirebaseVertexAI from 'src/hooks/useFirebaseVertexAI'
-
-// export const getInstagramIDsFromShopifyProducts = (products: ShopifyEdge[]): string[] => {
-//   return products.map((product: ShopifyEdge) => product.node.metafields.edges[0]?.node?.value || null).filter(id => id)
-// }
 
 export const extractProductId = (id: string) => {
   const startIdIdx = id.lastIndexOf('/')
@@ -15,9 +11,13 @@ export const extractProductId = (id: string) => {
   return id.slice(startIdIdx + 1)
 }
 
-export const processProductsByVertexAI = async (products: ProductType[]) => {
+export const processProductsByVertexAI = async (products: ProductType[], categories: ProductCategories) => {
   let processedProducts = products
   const vertex = useFirebaseVertexAI()
+
+  // TODO temporally
+  const values = Object.values(categories)
+  const randCategory = values[(values.length * Math.random()) << 0]
 
   const parts: (InlineDataPart | TextPart)[] = [
     ...processedProducts.map(product => ({
@@ -47,14 +47,13 @@ export const processProductsByVertexAI = async (products: ProductType[]) => {
 
   const result = await vertex.model.generateContent(requestToVertexAI as GenerateContentRequest)
   let parsedContent: GeneratedContent = []
-  console.log('%c result.response.candidates', 'color: red; font-weight: bold;', result.response.candidates)
+
   if (result.response.candidates?.length) {
     parsedContent = JSON.parse(
       result.response.candidates[0].content.parts[0].text?.replace('```json', '').replace('```', '')!
     )
   }
-  console.log('%c parsedContent', 'color: green; font-weight: bold;', parsedContent)
-  console.log('%c processedProducts', 'color: red; font-weight: bold;', processedProducts)
+
   processedProducts = processedProducts.map((product, idx) => {
     let { thumbnailBase64, ...processedProduct } = product
 
@@ -62,7 +61,9 @@ export const processProductsByVertexAI = async (products: ProductType[]) => {
       ...processedProduct,
       title: parsedContent[idx].title || processedProduct.title,
       description: parsedContent[idx].description || processedProduct.description,
-      category: parsedContent[idx].category || processedProduct.category,
+      // TODO temporally
+      // category: parsedContent[idx].category || processedProduct.category,
+      category: randCategory || processedProduct.category,
       metaTitle: parsedContent[idx].meta_title || processedProduct.metaTitle,
       metaDescription: parsedContent[idx].meta_description || processedProduct.metaDescription
     }

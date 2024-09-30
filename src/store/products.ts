@@ -5,7 +5,15 @@ import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit'
 import { REQUEST_STATUTES } from 'src/configs/constants'
 
 // ** Types
-import type { InstagramPostType, ProductType, RequestStatusTypes, ShopifyEdge, ShopifyProduct } from 'src/types'
+import type {
+  ShopifyEdge,
+  ProductType,
+  ShopifyProduct,
+  ShopifyCategory,
+  ProductCategories,
+  InstagramPostType,
+  RequestStatusTypes
+} from 'src/types'
 import { AppDispatch, RootState } from '.'
 import type { SaveDBProductsType } from 'src/services/db/products/types'
 import type { GridRowId } from '@mui/x-data-grid'
@@ -18,9 +26,15 @@ import ProductDBAdapter from 'src/services/db/products/adapter'
 import useFacebook from 'src/hooks/useFacebook'
 
 // ** Helpers
-import { isError, formatProducts } from 'src/services/db/products/helpers'
+import { isError, formatProducts, uploadShopifyCategories } from 'src/services/db/products/helpers'
 import shopifyAdminFetch from 'src/utils/shopifyAdminFetch'
-import { createProduct, fetchProductCategoriesTopLevel, queryProductsByInstagramOrigin } from 'src/utils/shopifySchemas'
+import {
+  createProduct,
+  fetchProductCategoriesNestedLevel,
+  fetchProductCategoriesNestedLevelNext,
+  fetchProductCategoriesTopLevel,
+  queryProductsByInstagramOrigin
+} from 'src/utils/shopifySchemas'
 import { extractProductId, processProductsByVertexAI } from './helpers'
 
 // NOTE Don't remove
@@ -121,8 +135,8 @@ export const addToShopProducts = createAppAsyncThunk(
     let selectedProductsData = products.data.client.filter(product => productIds.includes(product.id as string))
     const instagramIDs: ShopifyProduct[] = []
 
-    if (vertexAIEnabled) {
-      selectedProductsData = await processProductsByVertexAI(selectedProductsData)
+    if (vertexAIEnabled && products.categories) {
+      selectedProductsData = await processProductsByVertexAI(selectedProductsData, products.categories)
     }
 
     await Promise.all(
@@ -132,7 +146,7 @@ export const addToShopProducts = createAppAsyncThunk(
         if (data.productCreate?.product?.id) {
           instagramIDs.push({
             instagramId: product.instagramId,
-            shopifyProductId: data.productCreate.product.id
+            shopifyProductId: extractProductId(data.productCreate.product.id)
           })
         }
       })
@@ -144,22 +158,120 @@ export const addToShopProducts = createAppAsyncThunk(
   }
 )
 
-const fetchProductCategoriesNestedLevels = ({ rootCategoryId }: { rootCategoryId: boolean }) => {}
+const fetchProductCategoriesNestedLevels = async (category: ShopifyCategory) => {
+  let nestedCategoryList: ProductCategories = {}
+  let hasNextPage: boolean = false
+  let cursor: string | null = null
+
+  do {
+    let data: {
+      edges: ShopifyCategory[]
+      pageInfo: {
+        hasNextPage: boolean
+      }
+    } = {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false
+      }
+    }
+
+    if (cursor) {
+      const result = await shopifyAdminFetch({
+        query: fetchProductCategoriesNestedLevelNext({ categoryId: category.node.id, cursor })
+      })
+
+      cursor = null
+      data = result.data?.taxonomy?.categories
+    } else {
+      const result = await shopifyAdminFetch({
+        query: fetchProductCategoriesNestedLevel({ categoryId: category.node.id })
+      })
+
+      cursor = null
+      data = result.data?.taxonomy?.categories
+    }
+
+    if (!data?.edges.length) {
+      return nestedCategoryList
+    }
+
+    hasNextPage = data.pageInfo.hasNextPage
+
+    if (hasNextPage && data.edges.length) {
+      const lastNode = data.edges.at(-1)
+      cursor = lastNode?.cursor || null
+    }
+
+    const nestedCategories = data.edges
+
+    for (const { node } of nestedCategories) {
+      if (node.isLeaf) {
+        nestedCategoryList[node.name] = node.id
+      }
+    }
+  } while (hasNextPage)
+
+  return nestedCategoryList
+}
 
 // ** Fetch Shopify product categories
-export const fetchProductCategories = createAppAsyncThunk('products/getShopifyProductCategories', async () => {
-  const { data } = await shopifyAdminFetch({
-    query: fetchProductCategoriesTopLevel()
-  })
+export const fetchProductCategories = createAppAsyncThunk(
+  'products/getShopifyProductCategories',
+  async (_, { getState }) => {
+    const { products } = getState()
+    const categories: ProductCategories = {}
 
-  return
-})
+    if (products.categories) {
+      return products.categories
+    }
+
+    const { data } = await shopifyAdminFetch({
+      query: fetchProductCategoriesTopLevel()
+    })
+
+    if (data?.taxonomy?.categories?.edges.length) {
+      const categoryList = await data.taxonomy.categories.edges.reduce(
+        async (
+          categoriesAccumulatorPromise: Promise<ProductCategories>,
+          category: ShopifyCategory
+        ): Promise<ProductCategories> => {
+          let categories = await categoriesAccumulatorPromise
+          // TODO
+          if (!category.node.childrenIds.length) {
+            categories[category.node.name] = category.node.id
+          } else {
+            const nestedCategories = await fetchProductCategoriesNestedLevels(category)
+
+            categories = {
+              ...categories,
+              ...nestedCategories
+            }
+          }
+
+          return categories
+        },
+        Promise.resolve(categories)
+      )
+
+      // console.time('processing JSON')
+      // console.log(JSON.stringify(categoryList))
+      // console.timeEnd('processing JSON')
+      uploadShopifyCategories(categoryList)
+
+      return categoryList
+    }
+
+    return null
+  }
+)
 
 type ProductsState = {
   data: {
     client: ProductType[]
     shopify: ShopifyProduct[]
   }
+  categories: ProductCategories | null
   status: {
     client: RequestStatusTypes
     shopify: RequestStatusTypes
@@ -172,6 +284,7 @@ const initialState: ProductsState = {
     client: [],
     shopify: []
   },
+  categories: null,
   error: null,
   status: {
     client: REQUEST_STATUTES.IDLE,
@@ -265,7 +378,24 @@ export const productsSlice = createSlice({
       state.status.shopify = REQUEST_STATUTES.RESOLVED
     })
     builder.addCase(addToShopProducts.rejected, (state, action) => {
-      console.log('%c action', 'color: red; font-weight: bold;', action)
+      if (isError(action.error)) {
+        state.error = action.error
+      } else if (action.error.message) {
+        state.error = Error(action.error.message)
+      } else {
+        state.error = Error('Something went wrong!')
+      }
+
+      state.status.shopify = REQUEST_STATUTES.REJECTED
+    })
+    builder.addCase(fetchProductCategories.pending, state => {
+      state.status.shopify = REQUEST_STATUTES.PENDING
+    })
+    builder.addCase(fetchProductCategories.fulfilled, (state, action) => {
+      state.categories = action.payload as ProductCategories
+      state.status.shopify = REQUEST_STATUTES.RESOLVED
+    })
+    builder.addCase(fetchProductCategories.rejected, (state, action) => {
       if (isError(action.error)) {
         state.error = action.error
       } else if (action.error.message) {

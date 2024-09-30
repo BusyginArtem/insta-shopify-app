@@ -45,7 +45,6 @@ query {
           fullName
           name
           level
-          isRoot
           isLeaf
           childrenIds
         }
@@ -54,22 +53,48 @@ query {
   }
 }`
 
-export const fetchProductCategoriesNestedLevel = ({ categoryId }: { categoryId: boolean }) => `
+export const fetchProductCategoriesNestedLevel = ({ categoryId }: { categoryId: string }) => `
 query {
   taxonomy {
-    categories(first: 250, childrenOf: "${categoryId}") {
+    categories(first: 250, descendantsOf: "${categoryId}") {
       pageInfo {
         hasNextPage
       }
       edges {
+        cursor
         node {
           id
           fullName
           name
           level
-          isRoot
           isLeaf
-          childrenIds
+        }
+      }
+    }
+  }
+}`
+
+export const fetchProductCategoriesNestedLevelNext = ({
+  categoryId,
+  cursor
+}: {
+  categoryId: string
+  cursor: string
+}) => `
+query {
+  taxonomy {
+    categories(first: 250, descendantsOf: "${categoryId}", after: ${cursor ? '"' + cursor + '"' : cursor}) {
+      pageInfo {
+        hasNextPage
+      }
+      edges {
+        cursor
+        node {
+          id
+          fullName
+          name
+          level
+          isLeaf
         }
       }
     }
@@ -81,9 +106,8 @@ mutation {
   productCreate(input: {
     title: "${product.title || 'Product'}"
     bodyHtml: "${product.metaDescription || ''}"
-    productType: "${product.category || ''}"
     handle: "${product.title || 'product_' + v4()}"
-    category: "gid://shopify/TaxonomyCategory/sg-4-17-2-17"
+    category: "${product.category || ''}"
     metafields: [
       {
         namespace: "product_origin",

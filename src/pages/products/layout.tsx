@@ -9,12 +9,7 @@ import useAuth from 'src/hooks/useAuth'
 
 // ** Store
 import { useAppDispatch, useTypedSelector } from 'src/store'
-import {
-  fetchDBProducts,
-  fetchProductCategories,
-  fetchShopifyInstagramProducts,
-  selectProductsError
-} from 'src/store/products'
+import { fetchDBProducts, fetchShopifyInstagramProducts, selectProductsError } from 'src/store/products'
 
 type Props = {
   children: ReactNode

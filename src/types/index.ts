@@ -43,6 +43,7 @@ export type AuthValuesType = {
   shop: Shop | null
   selectedInstagramAccount: InstagramAccountType | null
   loading: boolean
+  isReady: boolean
   user: User | null
   error: Error | null
   onHandleSetUp: (data: InstagramSetupFormValues) => Promise<void>
@@ -141,3 +142,17 @@ export type ShopifyEdge = {
 }
 
 export type ShopifyProduct = { shopifyProductId: string; instagramId: string }
+
+export type ProductCategories = {
+  [name: string]: string
+}
+
+export type ShopifyCategory = {
+  cursor: string
+  node: {
+    childrenIds: string[]
+    name: string
+    isLeaf: boolean
+    id: string
+  }
+}

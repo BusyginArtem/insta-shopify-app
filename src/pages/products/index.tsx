@@ -25,7 +25,8 @@ import {
   addToShopProducts,
   selectIntersectedProducts,
   selectFetchClientProductsStatus,
-  selectShopifyProductsStatus
+  selectShopifyProductsStatus,
+  fetchProductCategories
 } from 'src/store/products'
 import { useAppDispatch, useTypedSelector } from 'src/store'
 
@@ -124,8 +125,8 @@ const columns = [
     }
   },
   {
-    flex: 0.125,
-    minWidth: 120,
+    flex: 0.15,
+    minWidth: 150,
     field: 'status',
     headerName: 'Status',
     renderCell: ({ row }: RowProps) => {
@@ -134,8 +135,8 @@ const columns = [
           rounded
           size='small'
           skin='light'
-          color={status[row.status]}
-          label={row.status}
+          color={row.shopifyProductId ? 'success' : 'info'}
+          label={row.shopifyProductId ? 'Added to store' : 'Pending'}
           sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
         />
       )
@@ -209,6 +210,10 @@ const ProductsPage = () => {
   }
 
   const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
+    if (vertexAIEnabled) {
+      await dispatch(fetchProductCategories())
+    }
+
     await dispatch(addToShopProducts({ productIds: selectionModel, vertexAIEnabled }))
 
     if (shop?.id) {
@@ -223,13 +228,17 @@ const ProductsPage = () => {
     setSyncModalOpened(!syncModalOpened)
   }
 
+  const handleCloseSyncModal = () => {
+    setSyncModalOpened(false)
+  }
+
   const handleToggleAddToShopModal = () => {
     setAddToShopModalOpened(!addToShopModalOpened)
   }
 
   return (
     <>
-      <SyncModal opened={syncModalOpened} onCloseModal={handleToggleSyncModal} />
+      <SyncModal opened={syncModalOpened} onCloseModal={handleCloseSyncModal} />
 
       <AddToShopModal
         loading={shopifyQueryStatus === REQUEST_STATUTES.PENDING}
