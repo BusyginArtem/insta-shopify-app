@@ -10,7 +10,9 @@
     "lint": "eslint --fix \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "build:icons": "tsc -b src/iconify-bundle && node src/iconify-bundle/bundle-icons-react.js",
-    "deploy:toml": "shopify app deploy"
+    "deploy:toml": "shopify app deploy",
+    "host": "npx local-ssl-proxy --key www.localdomain.com-key.pem --cert www.localdomain.com.pem --source 443 --target 3000",
+    "host:create-ssl": "mkcert www.localdomain.com"
   },
   "dependencies": {
     "@casl/ability": "6.5.0",

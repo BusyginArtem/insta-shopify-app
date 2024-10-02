@@ -16,7 +16,7 @@ function ShopifyNavMenuLink({ href, onClick, ...props }: Props) {
       href={href}
       onClick={e => {
         e.preventDefault()
-        router.push(href?.toString()!)
+        router.push(href!)
         onClick?.(e)
       }}
       {...props}
@@ -29,7 +29,7 @@ export default function AppSideNav() {
     <ui-nav-menu>
       <ShopifyNavMenuLink href={APP_ROUTES.MAIN} rel='home' />
       <ShopifyNavMenuLink href={APP_ROUTES.PRODUCTS}>Products</ShopifyNavMenuLink>
-      {/* <Link href={'/about'}>About</Link> */}
+      <ShopifyNavMenuLink href={'/about'}>About</ShopifyNavMenuLink>
     </ui-nav-menu>
   )
 }

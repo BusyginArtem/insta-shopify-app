@@ -1,31 +1,54 @@
 // ** React Imports
 import { ReactNode, useState } from 'react'
-import { useSelector } from 'react-redux'
 
 // ** MUI Components
-import { DataGrid } from '@mui/x-data-grid'
-import { Card, Grid, Box, Button, CardHeader, Typography } from '@mui/material'
+import {
+  DataGrid,
+  GridRowId,
+  GridValidRowModel,
+  GridRowParams,
+  GRID_CHECKBOX_SELECTION_COL_DEF
+} from '@mui/x-data-grid'
+import { Card, Grid, Box, Button, CardHeader, Typography, Stack, IconButton, Checkbox } from '@mui/material'
 
 // ** Custom Component Import
 import UserLayout from '../../layouts/UserLayout'
 import ProductsLayout from './layout'
 import Avatar from 'src/@core/components/mui/avatar'
 import Chip from 'src/@core/components/mui/chip'
+import SyncModal from './components/SyncModal'
+import AddToShopModal from './components/AddToShopModal'
 
 // ** Product slice
-import { selectFetchProductsStatus, selectProductsData } from 'src/store/products'
+import {
+  fetchDBProducts,
+  addToShopProducts,
+  selectIntersectedProducts,
+  selectFetchClientProductsStatus,
+  selectShopifyProductsStatus,
+  fetchProductCategories
+} from 'src/store/products'
+import { useAppDispatch, useTypedSelector } from 'src/store'
+
+// ** Hooks
+import useAuth from 'src/hooks/useAuth'
 
 // ** Types
 import type { ProductType } from 'src/types'
 
-// ** Constants
-import { PRODUCT_STATUSES, REQUEST_STATUTES } from 'src/configs/constants'
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
 
-const status = {
-  [PRODUCT_STATUSES.ACTIVE]: 'success',
-  [PRODUCT_STATUSES.DRAFT]: 'warning',
-  [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
-} as const
+// ** Constants
+import { REQUEST_STATUTES } from 'src/configs/constants'
+
+const PAGE_SIZE = 5
+
+// const status = {
+//   [PRODUCT_STATUSES.ACTIVE]: 'success',
+//   [PRODUCT_STATUSES.DRAFT]: 'warning',
+//   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
+// } as const
 
 type RowProps = { row: ProductType }
 
@@ -36,6 +59,20 @@ const renderProduct = (row: ProductType) => {
 }
 
 const columns = [
+  {
+    ...GRID_CHECKBOX_SELECTION_COL_DEF,
+    renderCell: ({ row, ...props }: RowProps & GridValidRowModel) => {
+      return (
+        <Checkbox
+          disabled={!!row.shopifyProductId}
+          checked={row.shopifyProductId ? true : props.value}
+          onClick={() => {
+            props.api.selectRow(row.id, !props.value)
+          }}
+        />
+      )
+    }
+  },
   {
     field: 'thumbnail',
     minWidth: 60,
@@ -88,8 +125,8 @@ const columns = [
     }
   },
   {
-    flex: 0.125,
-    minWidth: 120,
+    flex: 0.15,
+    minWidth: 150,
     field: 'status',
     headerName: 'Status',
     renderCell: ({ row }: RowProps) => {
@@ -98,82 +135,196 @@ const columns = [
           rounded
           size='small'
           skin='light'
-          color={status[row.status]}
-          label={row.status}
+          color={row.shopifyProductId ? 'success' : 'info'}
+          label={row.shopifyProductId ? 'Added to store' : 'Pending'}
           sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
         />
       )
     }
   },
   {
-    flex: 0.125,
-    minWidth: 120,
+    flex: 0.2,
+    minWidth: 200,
     field: 'actions',
     headerName: 'Actions',
     renderCell: ({ row }: RowProps) => {
       return (
-        <Button
-          size='small'
-          variant='outlined'
-          color='secondary'
-          onClick={() => {
-            window.open(row.permalink, '_blank')?.focus()!
-          }}
-        >
-          Go to IG
-        </Button>
+        <Stack flexDirection='row' gap={2}>
+          <IconButton
+            onClick={() => {
+              window.open(row.permalink, '_blank')?.focus()!
+            }}
+          >
+            <Icon icon='skill-icons:instagram' fontSize={18} />
+          </IconButton>
+
+          {row.shopifyProductId && (
+            <IconButton>
+              <Box
+                component='a'
+                href={`shopify://admin/products/${row.shopifyProductId}`}
+                target='_blank'
+                sx={{ width: 20, height: 20 }}
+              >
+                <Icon icon='logos:shopify' fontSize={20} />
+              </Box>
+            </IconButton>
+          )}
+
+          {row.onlineStorePreviewUrl && (
+            <IconButton
+              onClick={() => {
+                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()!
+              }}
+            >
+              <Icon icon='ph:eye-bold' fontSize={20} />
+            </IconButton>
+          )}
+        </Stack>
       )
     }
   }
 ]
 
 const ProductsPage = () => {
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [selectionModel, setSelectionModel] = useState<GridRowId[]>([])
+  const [page, setPage] = useState(0)
+  const [syncModalOpened, setSyncModalOpened] = useState(false)
+  const [addToShopModalOpened, setAddToShopModalOpened] = useState(false)
 
-  const products = useSelector(selectProductsData)
-  const queryStatus = useSelector(selectFetchProductsStatus)
+  // ** Hooks
+  const { shop } = useAuth()
+
+  const products = useTypedSelector(selectIntersectedProducts)
+  const clientQueryStatus = useTypedSelector(selectFetchClientProductsStatus)
+  const shopifyQueryStatus = useTypedSelector(selectShopifyProductsStatus)
+
+  const dispatch = useAppDispatch()
+
+  const handleSelectRows = (newSelectionModel: GridRowId[]) => {
+    const offset = page * PAGE_SIZE
+    const currentPageRows = products.slice(offset, offset + PAGE_SIZE)
+
+    setSelectionModel(currentSelectionModel => {
+      if (!Array.isArray(currentSelectionModel) || !Array.isArray(newSelectionModel)) {
+        return currentSelectionModel
+      }
+
+      return [
+        ...new Set([
+          ...currentSelectionModel.filter(id => newSelectionModel.includes(id)),
+          ...newSelectionModel.filter(id => currentPageRows.findIndex(row => row.id === id) > -1)
+        ])
+      ]
+    })
+  }
+
+  const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
+    if (vertexAIEnabled) {
+      await dispatch(fetchProductCategories())
+    }
+
+    await dispatch(addToShopProducts({ productIds: selectionModel, vertexAIEnabled }))
+
+    if (shop?.id) {
+      dispatch(fetchDBProducts({ shopId: shop.id }))
+    }
+
+    setSelectionModel([])
+    handleToggleAddToShopModal()
+  }
+
+  const handleToggleSyncModal = () => {
+    setSyncModalOpened(!syncModalOpened)
+  }
+
+  const handleCloseSyncModal = () => {
+    setSyncModalOpened(false)
+  }
+
+  const handleToggleAddToShopModal = () => {
+    setAddToShopModalOpened(!addToShopModalOpened)
+  }
 
   return (
-    <Grid container spacing={6.5}>
-      <Grid item xs={12}>
-        <Card>
-          <CardHeader
-            title='Products List'
-            action={
-              <div>
-                <Button
-                  size='medium'
-                  variant='contained'
-                  onClick={() => {
-                    // setSyncModalOpened(true)
-                  }}
-                >
-                  Synchronize with Instagram
-                </Button>
-              </div>
-            }
-          />
+    <>
+      <SyncModal opened={syncModalOpened} onCloseModal={handleCloseSyncModal} />
 
-          <DataGrid
-            autoHeight
-            rowHeight={62}
-            rows={products}
-            columns={columns}
-            disableRowSelectionOnClick
-            pageSizeOptions={[10, 25, 50]}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            loading={queryStatus === REQUEST_STATUTES.PENDING}
-            sx={{
-              // disable cell selection style
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
+      <AddToShopModal
+        loading={shopifyQueryStatus === REQUEST_STATUTES.PENDING}
+        opened={addToShopModalOpened}
+        onCloseModal={handleToggleAddToShopModal}
+        onAddProducts={handleAddProductsToShop}
+      />
+
+      <Grid container spacing={6.5}>
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader
+              title='Products List'
+              action={
+                <Stack flexDirection='row' gap={3}>
+                  <Button
+                    size='medium'
+                    variant='outlined'
+                    disabled={!selectionModel.length}
+                    onClick={handleToggleAddToShopModal}
+                  >
+                    Add to shop products
+                  </Button>
+
+                  <Button size='medium' variant='contained' onClick={handleToggleSyncModal}>
+                    Synchronize with Instagram
+                  </Button>
+                </Stack>
               }
-            }}
-          />
-        </Card>
+            />
+
+            <DataGrid
+              autoHeight
+              rowHeight={62}
+              rows={products}
+              columns={columns}
+              // disableRowSelectionOnClick
+              pageSizeOptions={[PAGE_SIZE]}
+              paginationModel={{
+                page,
+                pageSize: PAGE_SIZE
+              }}
+              onPaginationModelChange={({ page }) => setPage(page)}
+              loading={clientQueryStatus === REQUEST_STATUTES.PENDING}
+              checkboxSelection
+              onRowSelectionModelChange={handleSelectRows}
+              rowSelectionModel={selectionModel}
+              isRowSelectable={(params: GridRowParams) => !params.row.shopifyProductId}
+              sx={{
+                // disable cell selection style
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+                // pointer cursor on ALL rows
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                },
+                '& .MuiDataGrid-row': {
+                  userSelect: 'none'
+                }
+              }}
+              // slots={{
+              //   baseCheckbox: Checkbox
+              // }}
+              // slotProps={{
+              //   baseCheckbox: {
+              // disabled: true
+              // checkedIcon: <Checkbox checked={true} />,
+              // icon: <Checkbox checked={true} />
+              //   }
+              // }}
+            />
+          </Card>
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   )
 }
 

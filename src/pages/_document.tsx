@@ -12,6 +12,8 @@ import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 
 class CustomDocument extends Document {
   render() {
+    const shopifyApiKey = process.env.NEXT_PUBLIC_SHOPIFY_API_KEY
+
     return (
       <Html lang='en'>
         <Head>
@@ -23,6 +25,10 @@ class CustomDocument extends Document {
           />
           <link rel='apple-touch-icon' sizes='180x180' href='/images/apple-touch-icon.png' />
           <link rel='shortcut icon' href='/images/favicon.png' />
+
+          <meta name='shopify-api-key' content={shopifyApiKey} />
+          {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+          <script src='https://cdn.shopify.com/shopifycloud/app-bridge.js' />
         </Head>
         <body>
           <Main />

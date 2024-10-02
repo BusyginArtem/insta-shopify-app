@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Menu from '@mui/material/Menu'
-import Badge from '@mui/material/Badge'
+// import Badge from '@mui/material/Badge'
 import Avatar from '@mui/material/Avatar'
 import Divider from '@mui/material/Divider'
 import { styled } from '@mui/material/styles'
@@ -28,12 +28,17 @@ interface Props {
 }
 
 // ** Styled Components
-const BadgeContentSpan = styled('span')(({ theme }) => ({
-  width: 8,
-  height: 8,
-  borderRadius: '50%',
-  backgroundColor: theme.palette.success.main,
-  boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
+// const BadgeContentSpan = styled('span')(({ theme }) => ({
+//   width: 8,
+//   height: 8,
+//   borderRadius: '50%',
+//   backgroundColor: theme.palette.success.main,
+//   boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
+// }))
+const AvatarStyled = styled(Avatar)(() => ({
+  width: 38,
+  height: 38,
+  cursor: 'pointer'
 }))
 
 const MenuItemStyled = styled(MenuItem)<MenuItemProps>(({ theme }) => ({
@@ -89,23 +94,8 @@ const UserDropdown = (props: Props) => {
 
   return (
     <Fragment>
-      {/* <Badge
-        overlap='circular'
-        onClick={handleDropdownOpen}
-        sx={{ ml: 2, cursor: 'pointer' }}
-        badgeContent={<BadgeContentSpan />}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right'
-        }}
-      > */}
-      <Avatar
-        alt={user?.displayName!}
-        src={user?.photoURL!}
-        onClick={handleDropdownOpen}
-        sx={{ width: 38, height: 38 }}
-      />
-      {/* </Badge> */}
+      <AvatarStyled alt={user?.displayName!} src={user?.photoURL!} onClick={handleDropdownOpen} />
+
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -116,16 +106,8 @@ const UserDropdown = (props: Props) => {
       >
         <Box sx={{ py: 1.75, px: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Badge
-              overlap='circular'
-              badgeContent={<BadgeContentSpan />}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right'
-              }}
-            > */}
             <Avatar alt={user?.displayName!} src={user?.photoURL!} sx={{ width: '2.5rem', height: '2.5rem' }} />
-            {/* </Badge> */}
+
             <Box sx={{ display: 'flex', ml: 2.5, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 500 }}>{user?.displayName!}</Typography>
             </Box>

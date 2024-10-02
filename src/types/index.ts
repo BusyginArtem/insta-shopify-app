@@ -8,7 +8,7 @@ declare global {
 }
 
 import { User } from '@firebase/auth'
-import { Timestamp } from '@firebase/firestore'
+import { FieldValue } from '@firebase/firestore'
 
 export type UserDataType = {
   id: number
@@ -43,6 +43,7 @@ export type AuthValuesType = {
   shop: Shop | null
   selectedInstagramAccount: InstagramAccountType | null
   loading: boolean
+  isReady: boolean
   user: User | null
   error: Error | null
   onHandleSetUp: (data: InstagramSetupFormValues) => Promise<void>
@@ -78,10 +79,11 @@ export type InstagramSetupFormValues = {
   shopDescription: string
   shopName: string
   email: string
-  isVertaxEnabled: boolean
+  // isVertaxEnabled: boolean
 }
 
 export type ProductType = {
+  id?: string
   instagramId: string
   shopId: Shop['id']
   shopOwnerId: User['uid']
@@ -103,9 +105,11 @@ export type ProductType = {
   variants: object[]
   similar: string[]
   category: string | null
-  createdAt: Timestamp
-  updatedAt: Timestamp
+  createdAt: FieldValue
+  updatedAt: FieldValue
   thumbnailBase64?: string
+  shopifyProductId?: string
+  onlineStorePreviewUrl?: string
 }
 
 export type RequestStatusTypes = (typeof REQUEST_STATUTES)[keyof typeof REQUEST_STATUTES]
@@ -119,3 +123,38 @@ export type PostContent = {
 }
 
 export type GeneratedContent = PostContent[]
+
+type ShopifyEdgeMetaFieldNode = {
+  node: {
+    key: 'instagram_id'
+    namespace: 'product_origin'
+    value: 'string'
+  }
+}
+
+export type ShopifyEdge = {
+  cursor: string
+  node: {
+    id: string
+    onlineStorePreviewUrl: string
+    metafields: {
+      edges: ShopifyEdgeMetaFieldNode[]
+    }
+  }
+}
+
+export type ShopifyProduct = { shopifyProductId: string; instagramId: string; onlineStorePreviewUrl: string }
+
+export type ProductCategories = {
+  [name: string]: string
+}
+
+export type ShopifyCategory = {
+  cursor: string
+  node: {
+    childrenIds: string[]
+    name: string
+    isLeaf: boolean
+    id: string
+  }
+}

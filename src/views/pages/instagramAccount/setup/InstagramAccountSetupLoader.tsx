@@ -48,7 +48,7 @@ const InstagramAccountSetupLoaderView = ({ theme }: { theme: Theme }) => {
       </Box>
       <Box sx={{ mb: 6 }}>
         <Typography variant='h4' sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {`Don't close or refresh the page!`}
+          Don't close or refresh the page!
         </Typography>
         <Typography
           sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -58,7 +58,7 @@ const InstagramAccountSetupLoaderView = ({ theme }: { theme: Theme }) => {
         <Typography
           sx={{ color: 'text.secondary', mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          Usualy it takes from 2 to 5 minutes.
+          Usually it takes from 2 to 5 minutes.
         </Typography>
       </Box>
       <Box sx={{ mb: 6, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
