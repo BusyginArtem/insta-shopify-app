@@ -109,6 +109,7 @@ export type ProductType = {
   updatedAt: FieldValue
   thumbnailBase64?: string
   shopifyProductId?: string
+  onlineStorePreviewUrl?: string
 }
 
 export type RequestStatusTypes = (typeof REQUEST_STATUTES)[keyof typeof REQUEST_STATUTES]
@@ -134,14 +135,15 @@ type ShopifyEdgeMetaFieldNode = {
 export type ShopifyEdge = {
   cursor: string
   node: {
-    id: 'string'
+    id: string
+    onlineStorePreviewUrl: string
     metafields: {
       edges: ShopifyEdgeMetaFieldNode[]
     }
   }
 }
 
-export type ShopifyProduct = { shopifyProductId: string; instagramId: string }
+export type ShopifyProduct = { shopifyProductId: string; instagramId: string; onlineStorePreviewUrl: string }
 
 export type ProductCategories = {
   [name: string]: string

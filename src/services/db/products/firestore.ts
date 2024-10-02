@@ -58,8 +58,6 @@ class FirestoreService implements Service {
 
     const querySnapshot = await getDocs(q)
 
-    console.log(querySnapshot.empty)
-
     return querySnapshot.empty
   }
 }

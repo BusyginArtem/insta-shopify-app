@@ -15,10 +15,6 @@ export const processProductsByVertexAI = async (products: ProductType[], categor
   let processedProducts = products
   const vertex = useFirebaseVertexAI()
 
-  // TODO temporally
-  const values = Object.values(categories)
-  const randCategory = values[(values.length * Math.random()) << 0]
-
   const parts: (InlineDataPart | TextPart)[] = [
     ...processedProducts.map(product => ({
       inlineData: {
@@ -61,9 +57,7 @@ export const processProductsByVertexAI = async (products: ProductType[], categor
       ...processedProduct,
       title: parsedContent[idx].title || processedProduct.title,
       description: parsedContent[idx].description || processedProduct.description,
-      // TODO temporally
-      // category: parsedContent[idx].category || processedProduct.category,
-      category: randCategory || processedProduct.category,
+      category: parsedContent[idx].category || processedProduct.category,
       metaTitle: parsedContent[idx].meta_title || processedProduct.metaTitle,
       metaDescription: parsedContent[idx].meta_description || processedProduct.metaDescription
     }

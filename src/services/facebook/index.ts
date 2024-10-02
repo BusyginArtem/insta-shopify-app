@@ -28,13 +28,9 @@ class FacebookService implements IFacebookService {
         `/${fbPage.id}?fields=connected_instagram_account&origin_graph_explorer=1&transport=cors&access_token=${this.accessToken}`
       )
 
-      // console.log('connectedIgAccount >>>>>>>>>>>', connectedIgAccount)
-
       const igAccount: AxiosResponse = await this.httpClient.get(
         `/${connectedIgAccount.data.connected_instagram_account.id}?fields=name,ig_id,username,profile_picture_url&access_token=${this.accessToken}`
       )
-
-      // console.log('igAccount >>>>>>>>>>>', igAccount)
 
       igAccounts.push(igAccount.data)
     }

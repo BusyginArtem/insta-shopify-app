@@ -69,7 +69,8 @@ export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetch
         if (product.node.metafields.edges[0]?.node?.value) {
           return {
             shopifyProductId: extractProductId(product.node.id),
-            instagramId: product.node.metafields.edges[0]?.node?.value
+            instagramId: product.node.metafields.edges[0]?.node?.value,
+            onlineStorePreviewUrl: product.node.onlineStorePreviewUrl
           }
         }
 
@@ -140,13 +141,16 @@ export const addToShopProducts = createAppAsyncThunk(
     }
 
     await Promise.all(
-      selectedProductsData.map(async product => {
+      selectedProductsData.map(async (product, idx) => {
         const { data } = await shopifyAdminFetch({ query: createProduct(product) })
 
         if (data.productCreate?.product?.id) {
+          selectedProductsData[idx].onlineStorePreviewUrl = data.productCreate?.product?.onlineStorePreviewUrl
+
           instagramIDs.push({
             instagramId: product.instagramId,
-            shopifyProductId: extractProductId(data.productCreate.product.id)
+            shopifyProductId: extractProductId(data.productCreate.product.id),
+            onlineStorePreviewUrl: product.onlineStorePreviewUrl!
           })
         }
       })
@@ -254,9 +258,6 @@ export const fetchProductCategories = createAppAsyncThunk(
         Promise.resolve(categories)
       )
 
-      // console.time('processing JSON')
-      // console.log(JSON.stringify(categoryList))
-      // console.timeEnd('processing JSON')
       uploadShopifyCategories(categoryList)
 
       return categoryList
@@ -425,7 +426,8 @@ export const selectIntersectedProducts = createSelector(
       if (shopifyProduct) {
         return {
           ...product,
-          shopifyProductId: shopifyProduct.shopifyProductId
+          shopifyProductId: shopifyProduct.shopifyProductId,
+          onlineStorePreviewUrl: shopifyProduct.onlineStorePreviewUrl
         }
       }
 

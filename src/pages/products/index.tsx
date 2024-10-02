@@ -40,15 +40,15 @@ import type { ProductType } from 'src/types'
 import Icon from 'src/@core/components/icon'
 
 // ** Constants
-import { PRODUCT_STATUSES, REQUEST_STATUTES } from 'src/configs/constants'
+import { REQUEST_STATUTES } from 'src/configs/constants'
 
 const PAGE_SIZE = 5
 
-const status = {
-  [PRODUCT_STATUSES.ACTIVE]: 'success',
-  [PRODUCT_STATUSES.DRAFT]: 'warning',
-  [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
-} as const
+// const status = {
+//   [PRODUCT_STATUSES.ACTIVE]: 'success',
+//   [PRODUCT_STATUSES.DRAFT]: 'warning',
+//   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
+// } as const
 
 type RowProps = { row: ProductType }
 
@@ -168,6 +168,16 @@ const columns = [
               >
                 <Icon icon='logos:shopify' fontSize={20} />
               </Box>
+            </IconButton>
+          )}
+
+          {row.onlineStorePreviewUrl && (
+            <IconButton
+              onClick={() => {
+                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()!
+              }}
+            >
+              <Icon icon='ph:eye-bold' fontSize={20} />
             </IconButton>
           )}
         </Stack>

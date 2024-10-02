@@ -5,6 +5,7 @@ const productsGql = `
   cursor
   node {
     id
+    onlineStorePreviewUrl
     metafields(namespace: "product_origin", first: 1) {
       edges {
         node {
@@ -101,13 +102,14 @@ query {
   }
 }`
 
+// category: "${product.category || ''}"
 export const createProduct = (product: ProductType) => `
 mutation {
   productCreate(input: {
     title: "${product.title || 'Product'}"
     bodyHtml: "${product.metaDescription || ''}"
     handle: "${product.title || 'product_' + v4()}"
-    category: "${product.category || ''}"
+    category: "gid://shopify/TaxonomyCategory/el-3-6-2-1"
     metafields: [
       {
         namespace: "product_origin",
@@ -123,6 +125,7 @@ mutation {
   }) {
     product {
       id
+      onlineStorePreviewUrl
     }
     userErrors {
       field
