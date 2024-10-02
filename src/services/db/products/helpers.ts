@@ -5,7 +5,7 @@ import { getDownloadURL, ref, uploadString, uploadBytes } from '@firebase/storag
 
 // ** Types
 import type { User } from '@firebase/auth'
-import type { InstagramPostType, ProductCategories, ProductType, Shop } from 'src/types'
+import type { InstagramPostType, StorageFileStructure, ProductType, Shop } from 'src/types'
 // import { InlineDataPart, TextPart } from 'firebase/vertexai-preview'
 
 // ** Hooks
@@ -16,15 +16,16 @@ const STORAGE_PRODUCTS = 'products'
 
 const storage = useFirebaseStorage()
 
-export function uploadShopifyCategories(categoryList: ProductCategories) {
+export async function uploadFile(file: StorageFileStructure, fileName: string) {
   try {
-    const storageCategoriesRef = ref(storage, 'files/categories.json')
+    const storageFileRef = ref(storage, `uploads/${(window as any).shopify.config.shop}/${fileName}.json`)
 
-    const blob = new Blob([JSON.stringify(categoryList)], { type: 'application/json' })
+    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' })
 
-    uploadBytes(storageCategoriesRef, blob).then(() => {
-      console.log('Categories were uploaded to the storage successfully!')
-    })
+    const result = await uploadBytes(storageFileRef, blob)
+    console.log(`${fileName} were uploaded to the storage successfully!`)
+
+    return result?.ref.toString()
   } catch (error) {
     console.error(error)
   }

@@ -1,6 +1,6 @@
 // ** Types
 import { GenerateContentRequest, InlineDataPart, TextPart } from 'firebase/vertexai-preview'
-import { GeneratedContent, ProductCategories, ProductType } from 'src/types'
+import { GeneratedContent, StorageFileStructure, ProductType } from 'src/types'
 
 // ** Hooks
 import useFirebaseVertexAI from 'src/hooks/useFirebaseVertexAI'
@@ -11,7 +11,7 @@ export const extractProductId = (id: string) => {
   return id.slice(startIdIdx + 1)
 }
 
-export const processProductsByVertexAI = async (products: ProductType[], categories: ProductCategories) => {
+export const processProductsByVertexAI = async (products: ProductType[], categories: StorageFileStructure) => {
   let processedProducts = products
   const vertex = useFirebaseVertexAI()
 

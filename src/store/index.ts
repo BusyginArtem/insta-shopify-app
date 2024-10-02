@@ -6,10 +6,12 @@ import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux'
 
 // ** Reducers
 import products from 'src/store/products'
+import shopify from 'src/store/shopify'
 
 const store = configureStore({
   reducer: {
-    products
+    products,
+    shopify
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

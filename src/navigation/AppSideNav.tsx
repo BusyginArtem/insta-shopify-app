@@ -16,8 +16,9 @@ function ShopifyNavMenuLink({ href, onClick, ...props }: Props) {
       href={href}
       onClick={e => {
         e.preventDefault()
+        history.pushState(null, '', href)
         router.push(href!)
-        onClick?.(e)
+        // onClick?.(e)
       }}
       {...props}
     />

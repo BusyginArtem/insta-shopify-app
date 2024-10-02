@@ -20,14 +20,13 @@ import SyncModal from './components/SyncModal'
 import AddToShopModal from './components/AddToShopModal'
 
 // ** Product slice
+import { fetchDBProducts, selectIntersectedProducts, selectFetchClientProductsStatus } from 'src/store/products'
 import {
-  fetchDBProducts,
   addToShopProducts,
-  selectIntersectedProducts,
-  selectFetchClientProductsStatus,
   selectShopifyProductsStatus,
-  fetchProductCategories
-} from 'src/store/products'
+  fetchShopifyProductCategories,
+  fetchShopifyCollections
+} from 'src/store/shopify'
 import { useAppDispatch, useTypedSelector } from 'src/store'
 
 // ** Hooks
@@ -220,8 +219,10 @@ const ProductsPage = () => {
   }
 
   const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
+    // ANCHOR
     if (vertexAIEnabled) {
-      await dispatch(fetchProductCategories())
+      await dispatch(fetchShopifyProductCategories())
+      await dispatch(fetchShopifyCollections())
     }
 
     await dispatch(addToShopProducts({ productIds: selectionModel, vertexAIEnabled }))

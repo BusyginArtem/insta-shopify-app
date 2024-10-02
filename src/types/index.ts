@@ -145,14 +145,13 @@ export type ShopifyEdge = {
 
 export type ShopifyProduct = { shopifyProductId: string; instagramId: string; onlineStorePreviewUrl: string }
 
-export type ProductCategories = {
-  [name: string]: string
+export type StorageFileStructure = {
+  [id: string]: string
 }
 
 export type ShopifyCategory = {
   cursor: string
   node: {
-    childrenIds: string[]
     name: string
     isLeaf: boolean
     id: string

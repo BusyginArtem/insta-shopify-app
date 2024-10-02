@@ -33,6 +33,21 @@ query {
   }
 }`
 
+export const fetchCollections = ({ cursor }: { cursor: string | null }) => `
+query {
+  collections(first: 250, after: ${cursor ? '"' + cursor + '"' : cursor}) {
+    pageInfo {
+      hasNextPage
+    }
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}`
+
 export const fetchProductCategoriesTopLevel = () => `
 query {
   taxonomy {
@@ -47,7 +62,6 @@ query {
           name
           level
           isLeaf
-          childrenIds
         }
       }
     }
@@ -75,33 +89,34 @@ query {
   }
 }`
 
-export const fetchProductCategoriesNestedLevelNext = ({
-  categoryId,
-  cursor
-}: {
-  categoryId: string
-  cursor: string
-}) => `
-query {
-  taxonomy {
-    categories(first: 250, descendantsOf: "${categoryId}", after: ${cursor ? '"' + cursor + '"' : cursor}) {
-      pageInfo {
-        hasNextPage
-      }
-      edges {
-        cursor
-        node {
-          id
-          fullName
-          name
-          level
-          isLeaf
-        }
-      }
-    }
-  }
-}`
+// export const fetchProductCategoriesNestedLevelNext = ({
+//   categoryId,
+//   cursor
+// }: {
+//   categoryId: string
+//   cursor: string
+// }) => `
+// query {
+//   taxonomy {
+//     categories(first: 250, descendantsOf: "${categoryId}", after: ${cursor ? '"' + cursor + '"' : cursor}) {
+//       pageInfo {
+//         hasNextPage
+//       }
+//       edges {
+//         cursor
+//         node {
+//           id
+//           fullName
+//           name
+//           level
+//           isLeaf
+//         }
+//       }
+//     }
+//   }
+// }`
 
+// TODO change
 // category: "${product.category || ''}"
 export const createProduct = (product: ProductType) => `
 mutation {
