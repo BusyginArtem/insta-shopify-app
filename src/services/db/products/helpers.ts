@@ -16,7 +16,33 @@ const STORAGE_PRODUCTS = 'products'
 
 const storage = useFirebaseStorage()
 
-export async function uploadFile(file: StorageFileStructure, fileName: string) {
+export function convertObjToCSV(data: StorageFileStructure) {
+  try {
+    return `${'ID,NAME'}\n${Object.entries(data)
+      .map(([id, value]) => `${id},${value}`)
+      .join('\r\n')}`
+  } catch (error) {
+    console.error(error)
+    return ''
+  }
+}
+
+export async function uploadCSVFile({ csv, fileName }: { csv: string; fileName: string }) {
+  try {
+    const storageFileRef = ref(storage, `uploads/${(window as any).shopify.config.shop}/${fileName}.csv`)
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+
+    const result = await uploadBytes(storageFileRef, blob)
+    console.log(`${fileName} were uploaded to the storage successfully!`)
+
+    return result?.ref.toString()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function uploadJSONFile({ file, fileName }: { file: StorageFileStructure; fileName: string }) {
   try {
     const storageFileRef = ref(storage, `uploads/${(window as any).shopify.config.shop}/${fileName}.json`)
 

@@ -117,8 +117,6 @@ const AuthProvider = ({ children }: Props) => {
       }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // TODO check
-    // }, [state.selectedInstagramAccount?.id, state.user?.uid, router.pathname])
   }, [state.selectedInstagramAccount?.id, state.user?.uid])
 
   // ** If a user has Facebook access in the localStorage they are signed in to Firestore to get access to a shop entity and store it in the context

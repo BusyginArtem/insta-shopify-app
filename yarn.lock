@@ -505,11 +505,11 @@
     undici "6.19.7"
 
 "@firebase/component@0.6.6-vertexai-preview.8b70fc586":
-  version "0.6.9-20240916151535"
-  resolved "https://registry.yarnpkg.com/@firebase/component/-/component-0.6.9-20240916151535.tgz#dd4fd1127ce5b96aaedb45729ce62fb1228a844c"
-  integrity sha512-+oNv5NaGjST8KOZWvz1EPLsptBHqUsPqfG4GAyVWdbnH708QHUNquhR18hbUvo9hKa40KgqimWS+G7Di1HGiUA==
+  version "0.6.9"
+  resolved "https://registry.yarnpkg.com/@firebase/component/-/component-0.6.9.tgz#4248cfeab222245ada0d7f78ece95a87574532b4"
+  integrity sha512-gm8EUEJE/fEac86AvHn8Z/QW8BvR56TBw3hMW0O838J/1mThYQXAIQBgUv75EqlCZfdawpWLrKt1uXvp9ciK3Q==
   dependencies:
-    "@firebase/util" "1.10.0-20240916151535"
+    "@firebase/util" "1.10.0"
     tslib "^2.1.0"
 
 "@firebase/component@0.6.8":
@@ -754,10 +754,10 @@
     tslib "^2.1.0"
     undici "6.19.7"
 
-"@firebase/util@1.10.0-20240916151535", "@firebase/util@1.9.5-vertexai-preview.8b70fc586":
-  version "1.10.0-20240916151535"
-  resolved "https://registry.yarnpkg.com/@firebase/util/-/util-1.10.0-20240916151535.tgz#7c0a97eccfdcb8e86981ad655ace060a47d842bf"
-  integrity sha512-si4sGYh89RI5SmZHSqAVX/60UMmgLSt2NrZEGIe2V+xRe9tNAIbuw/hQFZjuPj5i+55l6mpjRoZQ6FqbFp70hw==
+"@firebase/util@1.10.0", "@firebase/util@1.9.5-vertexai-preview.8b70fc586":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@firebase/util/-/util-1.10.0.tgz#9ec8ab54da82bfc31baff0c43cb281998cbeddab"
+  integrity sha512-xKtx4A668icQqoANRxyDLBLz51TAbDP9KRfpbKGxiCAW346d0BeJe5vN6/hKxxmWwnZ0mautyv39JxviwwQMOQ==
   dependencies:
     tslib "^2.1.0"
 
@@ -1250,6 +1250,32 @@
   version "1.2.0"
   resolved "https://registry.npmjs.org/@rushstack/eslint-patch/-/eslint-patch-1.2.0.tgz"
   integrity sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==
+
+"@shopify/app-bridge-core@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@shopify/app-bridge-core/-/app-bridge-core-1.1.1.tgz#b8b16e7c4ba60d6d593a89f397e4abef9be6ef50"
+  integrity sha512-kEnJUpkC9vDdmGMN3Mezq/FlDBqP+DFg/A1PFzqTW8FILu0wzFmz1aFk4Hxy6Y6ilceMmn8QXsyLA9DfaeH4jQ==
+
+"@shopify/app-bridge-react@^4.1.5":
+  version "4.1.5"
+  resolved "https://registry.yarnpkg.com/@shopify/app-bridge-react/-/app-bridge-react-4.1.5.tgz#711c2ac9c44de40dae2e3e06e01a5820caa5eeae"
+  integrity sha512-5OX+bUYkvvTvz6ZsZFOFYoVTrgTxG+L4cCcesw0vaYMvOkUA7JAXJI4/g4ZwTQC9Kl+BwklXN/9IhC952cBz7A==
+  dependencies:
+    "@shopify/app-bridge-types" "0.0.15"
+
+"@shopify/app-bridge-types@0.0.15", "@shopify/app-bridge-types@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@shopify/app-bridge-types/-/app-bridge-types-0.0.15.tgz#f5b7fbb57eb5b9c4497d8c36ac8986ddd2770f4e"
+  integrity sha512-7hi/DeLU5/3c7wtc+vij3T9Ga/UXtPG60v7o3hgEm1cysLQuwwHKD37uq5b3HzE6D+0ZHz26RW7LPiGU8VLOww==
+
+"@shopify/app-bridge@^3.7.10":
+  version "3.7.10"
+  resolved "https://registry.yarnpkg.com/@shopify/app-bridge/-/app-bridge-3.7.10.tgz#f2f72a7897afdd6b48b0e5484efd56fff71892b5"
+  integrity sha512-zy4c05DEOkYXm1yWIe0FrI0lq6hzffIT4JWzb9XKqY5OPRNHRHg+ihDt0ZnR8eMVmYV03yStpGAITIfqOgn4TQ==
+  dependencies:
+    "@shopify/app-bridge-core" "1.1.1"
+    base64url "^3.0.1"
+    web-vitals "^3.0.1"
 
 "@swc/helpers@0.5.1":
   version "0.5.1"
@@ -1805,6 +1831,11 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
+
+base64url@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/base64url/-/base64url-3.0.1.tgz#6399d572e2bc3f90a9a8b22d5dbb0a32d33f788d"
+  integrity sha512-ir1UPr3dkwexU7FdV8qBBbNDRUhMmIekYMFZfi+C/sLNnRESKPl23nB9b2pltqfOQNnGzsDdId90AEtG5tCx4A==
 
 big-integer@^1.6.44:
   version "1.6.51"
@@ -5225,6 +5256,11 @@ warning@^4.0.2:
   integrity sha512-rpJyN222KWIvHJ/F53XSZv0Zl/accqHR8et1kpaMTD/fLCRxtV8iX8czMzY7sVZupTI3zcUTg8eycS2kNF9l6w==
   dependencies:
     loose-envify "^1.0.0"
+
+web-vitals@^3.0.1:
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/web-vitals/-/web-vitals-3.5.2.tgz#5bb58461bbc173c3f00c2ddff8bfe6e680999ca9"
+  integrity sha512-c0rhqNcHXRkY/ogGDJQxZ9Im9D19hDihbzSQJrsioex+KnFgmMzBiy57Z1EjkhX/+OjyBpclDCzz2ITtjokFmg==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"

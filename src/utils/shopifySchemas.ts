@@ -1,4 +1,4 @@
-import { ProductType } from 'src/types'
+import { ExtendedProductTypeByShopifyFields, ProductType } from 'src/types'
 import { v4 } from 'uuid'
 
 const productsGql = `
@@ -35,7 +35,7 @@ query {
 
 export const fetchCollections = ({ cursor }: { cursor: string | null }) => `
 query {
-  collections(first: 250, after: ${cursor ? '"' + cursor + '"' : cursor}) {
+  collections(first: 250, query: "collection_type:custom", after: ${cursor ? '"' + cursor + '"' : cursor}) {
     pageInfo {
       hasNextPage
     }
@@ -116,15 +116,16 @@ query {
 //   }
 // }`
 
-// TODO change
 // category: "${product.category || ''}"
-export const createProduct = (product: ProductType) => `
+// collectionsToJoin: "${product.collection! || ''}"
+export const createProduct = (product: ExtendedProductTypeByShopifyFields) => `
 mutation {
   productCreate(input: {
     title: "${product.title || 'Product'}"
-    bodyHtml: "${product.metaDescription || ''}"
     handle: "${product.title || 'product_' + v4()}"
-    category: "gid://shopify/TaxonomyCategory/el-3-6-2-1"
+    ${product.metaDescription ? 'bodyHtml: ' + '"' + product.metaDescription + '"' : ''}
+    ${product.category ? 'category: ' + '"' + product.category + '"' : ''}
+    ${product.collectionsToJoin ? 'collectionsToJoin: ' + '"' + product.collectionsToJoin + '"' : ''}
     metafields: [
       {
         namespace: "product_origin",

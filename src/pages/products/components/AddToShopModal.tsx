@@ -27,6 +27,7 @@ const AddToShopModal = ({ opened, loading, onCloseModal, onAddProducts }: Props)
     await onAddProducts(vertexAIEnabled)
 
     onCloseModal()
+    setVertexAIEnabled(false)
   }
 
   const handleToggleVertexAIEnabled = () => {

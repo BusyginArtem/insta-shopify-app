@@ -109,6 +109,11 @@ export type ProductType = {
   updatedAt: FieldValue
   thumbnailBase64?: string
   shopifyProductId?: string
+}
+
+export type ExtendedProductTypeByShopifyFields = ProductType & {
+  collection?: string
+  collectionsToJoin?: string
   onlineStorePreviewUrl?: string
 }
 
@@ -120,6 +125,7 @@ export type PostContent = {
   description: string
   meta_description: string
   meta_title: string
+  collection: string
 }
 
 export type GeneratedContent = PostContent[]

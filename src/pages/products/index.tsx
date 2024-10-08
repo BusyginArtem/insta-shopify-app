@@ -33,7 +33,7 @@ import { useAppDispatch, useTypedSelector } from 'src/store'
 import useAuth from 'src/hooks/useAuth'
 
 // ** Types
-import type { ProductType } from 'src/types'
+import type { ExtendedProductTypeByShopifyFields, ProductType } from 'src/types'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -49,7 +49,7 @@ const PAGE_SIZE = 5
 //   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
 // } as const
 
-type RowProps = { row: ProductType }
+type RowProps = { row: ExtendedProductTypeByShopifyFields }
 
 const renderProduct = (row: ProductType) => {
   if (row.thumbnail) {
@@ -150,7 +150,8 @@ const columns = [
       return (
         <Stack flexDirection='row' gap={2}>
           <IconButton
-            onClick={() => {
+            onClick={e => {
+              e.stopPropagation()
               window.open(row.permalink, '_blank')?.focus()!
             }}
           >
@@ -172,7 +173,8 @@ const columns = [
 
           {row.onlineStorePreviewUrl && (
             <IconButton
-              onClick={() => {
+              onClick={e => {
+                e.stopPropagation()
                 window.open(row.onlineStorePreviewUrl, '_blank')?.focus()!
               }}
             >
@@ -219,7 +221,7 @@ const ProductsPage = () => {
   }
 
   const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
-    // ANCHOR
+    console.log('%c vertexAIEnabled', 'color: green; font-weight: bold;', vertexAIEnabled)
     if (vertexAIEnabled) {
       await dispatch(fetchShopifyProductCategories())
       await dispatch(fetchShopifyCollections())

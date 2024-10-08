@@ -29,6 +29,7 @@ import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import AuthGuard from 'src/@core/components/auth/AuthGuard'
 import GuestGuard from 'src/@core/components/auth/GuestGuard'
 import AppSideNav from 'src/navigation/AppSideNav'
+import RoutePropagator from 'src/navigation/RoutePropagator'
 
 // ** Spinner Import
 import Spinner from 'src/@core/components/spinner'
@@ -117,6 +118,8 @@ const App = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: Ex
         </Head>
 
         <AppSideNav />
+
+        <RoutePropagator />
 
         <AuthProvider>
           <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>

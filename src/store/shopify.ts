@@ -5,7 +5,15 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { REQUEST_STATUTES } from 'src/configs/constants'
 
 // ** Types
-import type { ShopifyEdge, ShopifyProduct, ShopifyCategory, StorageFileStructure, RequestStatusTypes } from 'src/types'
+import type {
+  ShopifyEdge,
+  ShopifyProduct,
+  ShopifyCategory,
+  StorageFileStructure,
+  RequestStatusTypes,
+  ProductType,
+  ExtendedProductTypeByShopifyFields
+} from 'src/types'
 import { AppDispatch, RootState } from '.'
 import type { GridRowId } from '@mui/x-data-grid'
 
@@ -14,7 +22,7 @@ import IndexedDBService from 'src/services/db/products/indexeddb'
 import ProductDBAdapter from 'src/services/db/products/adapter'
 
 // ** Helpers
-import { isError, uploadFile } from 'src/services/db/products/helpers'
+import { convertObjToCSV, isError, uploadCSVFile } from 'src/services/db/products/helpers'
 import shopifyAdminFetch from 'src/utils/shopifyAdminFetch'
 import {
   createProduct,
@@ -71,32 +79,48 @@ export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetch
 export const addToShopProducts = createAppAsyncThunk(
   'products/addToShopify',
   async ({ productIds, vertexAIEnabled }: { productIds: GridRowId[]; vertexAIEnabled: boolean }, { getState }) => {
-    const { products, shopify } = getState()
+    try {
+      const { products, shopify } = getState()
 
-    let selectedProductsData = products.data.filter(product => productIds.includes(product.id as string))
-    const instagramIDs: ShopifyProduct[] = []
+      let selectedProductsData = products.data.filter(product => productIds.includes(product.id as string))
+      const instagramIDs: ShopifyProduct[] = []
 
-    if (vertexAIEnabled && shopify.categories.list) {
-      selectedProductsData = await processProductsByVertexAI(selectedProductsData, shopify.categories.list)
-    }
+      if (vertexAIEnabled && shopify.categories.list && shopify.collections.list) {
+        selectedProductsData = await processProductsByVertexAI(
+          selectedProductsData,
+          shopify.categories.list,
+          shopify.collections.list
+        )
+      }
+      // console.log('%c selectedProductsData', 'color: red; font-weight: bold;', selectedProductsData)
 
-    await Promise.all(
-      selectedProductsData.map(async product => {
-        const { data } = await shopifyAdminFetch({ query: createProduct(product) })
-
-        if (data.productCreate?.product?.id) {
-          instagramIDs.push({
-            instagramId: product.instagramId,
-            shopifyProductId: extractProductId(data.productCreate.product.id),
-            onlineStorePreviewUrl: product.onlineStorePreviewUrl!
+      selectedProductsData = await Promise.all(
+        selectedProductsData.map(async product => {
+          const { data } = await shopifyAdminFetch({
+            query: createProduct(product)
           })
-        }
-      })
-    )
 
-    await dbAdapter.editProducts(selectedProductsData)
+          if (data.productCreate?.product?.id) {
+            instagramIDs.push({
+              instagramId: product.instagramId,
+              shopifyProductId: extractProductId(data.productCreate.product.id),
+              onlineStorePreviewUrl: data.productCreate.product.onlineStorePreviewUrl
+            })
+          }
 
-    return instagramIDs
+          const { collection, onlineStorePreviewUrl, collectionsToJoin, ...rest } =
+            product as ExtendedProductTypeByShopifyFields
+
+          return rest
+        })
+      )
+      // console.log('%c SAVE -----> selectedProductsData', 'color: green; font-weight: bold;', selectedProductsData)
+      await dbAdapter.editProducts(selectedProductsData)
+
+      return instagramIDs
+    } catch (error) {
+      console.log('%c ERROR --------->', 'color: red; font-weight: bold;', error)
+    }
   }
 )
 
@@ -132,7 +156,10 @@ export const fetchShopifyProductCategories = createAppAsyncThunk(
     const categories: StorageFileStructure = {}
 
     if (shopify.categories.list) {
-      return shopify.categories.list
+      return {
+        list: shopify.categories.list
+        // fileRef: shopify.categories.fileRef
+      }
     }
 
     const { data } = await shopifyAdminFetch({
@@ -163,14 +190,15 @@ export const fetchShopifyProductCategories = createAppAsyncThunk(
         Promise.resolve(categories)
       )
 
-      const categoriesFileRef = await uploadFile(categoryList, 'categories')
-
-      if (categoriesFileRef) {
-        return {
-          list: categoryList,
-          fileRef: categoriesFileRef
-        }
+      // const categoriesFileRef = await uploadJSONFile(categoryList, 'categories')
+      const categoriesFileRef = await uploadCSVFile({ csv: convertObjToCSV(categoryList), fileName: 'categories' })
+      console.log('%c categoriesFileRef', 'color: green; font-weight: bold;', categoriesFileRef)
+      // if (categoriesFileRef) {
+      return {
+        list: categoryList
+        // fileRef: categoriesFileRef
       }
+      // }
     }
 
     return null
@@ -185,7 +213,10 @@ export const fetchShopifyCollections = createAppAsyncThunk(
     const collections: StorageFileStructure = {}
 
     if (shopify.collections.list) {
-      return shopify.collections.list
+      return {
+        list: shopify.collections.list
+        // fileRef: shopify.collections.fileRef
+      }
     }
 
     let hasNextPage: boolean = false
@@ -212,14 +243,16 @@ export const fetchShopifyCollections = createAppAsyncThunk(
       }
     } while (hasNextPage)
 
-    const collectionsFileRef = await uploadFile(collections, 'collections')
+    // const collectionsFileRef = await uploadJSONFile(collections, 'collections')
+    const collectionsFileRef = await uploadCSVFile({ csv: convertObjToCSV(collections), fileName: 'collections' })
+    console.log('%c collectionsFileRef', 'color: green; font-weight: bold;', collectionsFileRef)
 
-    if (collectionsFileRef) {
-      return {
-        list: collections,
-        fileRef: collectionsFileRef
-      }
+    // if (collectionsFileRef) {
+    return {
+      list: collections
+      // fileRef: collectionsFileRef
     }
+    // }
 
     return { list: null, fileRef: null }
   }
@@ -230,12 +263,12 @@ type ShopifyState = {
   // TODO remove 'list' field if it's unnecessary
   categories: {
     list: StorageFileStructure | null
-    fileRef: string | null
+    // fileRef: string | null
   }
   // TODO remove 'list' field if it's unnecessary
   collections: {
     list: StorageFileStructure | null
-    fileRef: string | null
+    // fileRef: string | null
   }
   status: RequestStatusTypes
   error: Error | null
@@ -244,12 +277,12 @@ type ShopifyState = {
 const initialState: ShopifyState = {
   data: [],
   categories: {
-    list: null,
-    fileRef: null
+    list: null
+    // fileRef: null
   },
   collections: {
-    list: null,
-    fileRef: null
+    list: null
+    // fileRef: null
   },
   error: null,
   status: REQUEST_STATUTES.IDLE
@@ -284,7 +317,8 @@ export const shopifySlice = createSlice({
       state.error = null
     })
     builder.addCase(addToShopProducts.fulfilled, (state, action) => {
-      state.data = [...state.data, ...(action.payload as ShopifyProduct[])]
+      console.log('%c action.payload', 'color: green; font-weight: bold;', action.payload)
+      state.data = [...state.data, ...(action.payload?.length ? action.payload : [])]
       state.status = REQUEST_STATUTES.RESOLVED
     })
     builder.addCase(addToShopProducts.rejected, (state, action) => {
@@ -303,7 +337,7 @@ export const shopifySlice = createSlice({
     })
     builder.addCase(fetchShopifyProductCategories.fulfilled, (state, action) => {
       state.categories.list = action.payload ? (action.payload.list as StorageFileStructure) : null
-      state.categories.fileRef = action.payload ? action.payload.fileRef : null
+      // state.categories.fileRef = action.payload ? action.payload.fileRef : null
       state.status = REQUEST_STATUTES.RESOLVED
     })
     builder.addCase(fetchShopifyProductCategories.rejected, (state, action) => {
@@ -322,7 +356,7 @@ export const shopifySlice = createSlice({
     })
     builder.addCase(fetchShopifyCollections.fulfilled, (state, action) => {
       state.collections.list = action.payload ? (action.payload.list as StorageFileStructure) : null
-      state.collections.fileRef = action.payload ? action.payload.fileRef : null
+      // state.collections.fileRef = action.payload ? action.payload.fileRef : null
       state.status = REQUEST_STATUTES.RESOLVED
     })
     builder.addCase(fetchShopifyCollections.rejected, (state, action) => {
