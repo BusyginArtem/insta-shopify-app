@@ -125,7 +125,7 @@ mutation {
     handle: "${product.title || 'product_' + v4()}"
     ${product.metaDescription ? 'bodyHtml: ' + '"' + product.metaDescription + '"' : ''}
     ${product.category ? 'category: ' + '"' + product.category + '"' : ''}
-    ${product.collectionsToJoin ? 'collectionsToJoin: ' + '"' + product.collectionsToJoin + '"' : ''}
+    ${product.collection ? 'collectionsToJoin: ' + '"' + product.collection + '"' : ''}
     metafields: [
       {
         namespace: "product_origin",
