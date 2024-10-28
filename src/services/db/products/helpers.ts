@@ -5,7 +5,7 @@ import { getDownloadURL, ref, uploadString, uploadBytes } from '@firebase/storag
 
 // ** Types
 import type { User } from '@firebase/auth'
-import type { InstagramPostType, ProductCategories, ProductType, Shop } from 'src/types'
+import type { InstagramPostType, StorageFileStructure, ProductType, Shop } from 'src/types'
 // import { InlineDataPart, TextPart } from 'firebase/vertexai-preview'
 
 // ** Hooks
@@ -16,15 +16,42 @@ const STORAGE_PRODUCTS = 'products'
 
 const storage = useFirebaseStorage()
 
-export function uploadShopifyCategories(categoryList: ProductCategories) {
+export function convertObjToCSV(data: StorageFileStructure) {
   try {
-    const storageCategoriesRef = ref(storage, 'files/categories.json')
+    return `${'ID,NAME'}\n${Object.entries(data)
+      .map(([id, value]) => `${id},${value}`)
+      .join('\r\n')}`
+  } catch (error) {
+    console.error(error)
+    return ''
+  }
+}
 
-    const blob = new Blob([JSON.stringify(categoryList)], { type: 'application/json' })
+export async function uploadCSVFile({ csv, fileName }: { csv: string; fileName: string }) {
+  try {
+    const storageFileRef = ref(storage, `uploads/${(window as any).shopify.config.shop}/${fileName}.csv`)
 
-    uploadBytes(storageCategoriesRef, blob).then(() => {
-      console.log('Categories were uploaded to the storage successfully!')
-    })
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+
+    const result = await uploadBytes(storageFileRef, blob)
+    console.log(`${fileName} were uploaded to the storage successfully!`)
+
+    return result?.ref.toString()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export async function uploadJSONFile({ file, fileName }: { file: StorageFileStructure; fileName: string }) {
+  try {
+    const storageFileRef = ref(storage, `uploads/${(window as any).shopify.config.shop}/${fileName}.json`)
+
+    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' })
+
+    const result = await uploadBytes(storageFileRef, blob)
+    console.log(`${fileName} were uploaded to the storage successfully!`)
+
+    return result?.ref.toString()
   } catch (error) {
     console.error(error)
   }

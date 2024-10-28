@@ -109,6 +109,11 @@ export type ProductType = {
   updatedAt: FieldValue
   thumbnailBase64?: string
   shopifyProductId?: string
+}
+
+export type ExtendedProductTypeByShopifyFields = ProductType & {
+  collection?: string
+  collectionsToJoin?: string
   onlineStorePreviewUrl?: string
 }
 
@@ -120,6 +125,7 @@ export type PostContent = {
   description: string
   meta_description: string
   meta_title: string
+  collection: string
 }
 
 export type GeneratedContent = PostContent[]
@@ -145,14 +151,13 @@ export type ShopifyEdge = {
 
 export type ShopifyProduct = { shopifyProductId: string; instagramId: string; onlineStorePreviewUrl: string }
 
-export type ProductCategories = {
-  [name: string]: string
+export type StorageFileStructure = {
+  [id: string]: string
 }
 
 export type ShopifyCategory = {
   cursor: string
   node: {
-    childrenIds: string[]
     name: string
     isLeaf: boolean
     id: string

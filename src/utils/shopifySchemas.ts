@@ -1,4 +1,4 @@
-import { ProductType } from 'src/types'
+import { ExtendedProductTypeByShopifyFields, ProductType } from 'src/types'
 import { v4 } from 'uuid'
 
 const productsGql = `
@@ -33,6 +33,21 @@ query {
   }
 }`
 
+export const fetchCollections = ({ cursor }: { cursor: string | null }) => `
+query {
+  collections(first: 250, query: "collection_type:custom", after: ${cursor ? '"' + cursor + '"' : cursor}) {
+    pageInfo {
+      hasNextPage
+    }
+    edges {
+      node {
+        id
+        title
+      }
+    }
+  }
+}`
+
 export const fetchProductCategoriesTopLevel = () => `
 query {
   taxonomy {
@@ -47,7 +62,6 @@ query {
           name
           level
           isLeaf
-          childrenIds
         }
       }
     }
@@ -75,41 +89,41 @@ query {
   }
 }`
 
-export const fetchProductCategoriesNestedLevelNext = ({
-  categoryId,
-  cursor
-}: {
-  categoryId: string
-  cursor: string
-}) => `
-query {
-  taxonomy {
-    categories(first: 250, descendantsOf: "${categoryId}", after: ${cursor ? '"' + cursor + '"' : cursor}) {
-      pageInfo {
-        hasNextPage
-      }
-      edges {
-        cursor
-        node {
-          id
-          fullName
-          name
-          level
-          isLeaf
-        }
-      }
-    }
-  }
-}`
+// export const fetchProductCategoriesNestedLevelNext = ({
+//   categoryId,
+//   cursor
+// }: {
+//   categoryId: string
+//   cursor: string
+// }) => `
+// query {
+//   taxonomy {
+//     categories(first: 250, descendantsOf: "${categoryId}", after: ${cursor ? '"' + cursor + '"' : cursor}) {
+//       pageInfo {
+//         hasNextPage
+//       }
+//       edges {
+//         cursor
+//         node {
+//           id
+//           fullName
+//           name
+//           level
+//           isLeaf
+//         }
+//       }
+//     }
+//   }
+// }`
 
-// category: "${product.category || ''}"
-export const createProduct = (product: ProductType) => `
+export const createProduct = (product: ExtendedProductTypeByShopifyFields) => `
 mutation {
   productCreate(input: {
     title: "${product.title || 'Product'}"
-    bodyHtml: "${product.metaDescription || ''}"
     handle: "${product.title || 'product_' + v4()}"
-    category: "gid://shopify/TaxonomyCategory/el-3-6-2-1"
+    ${product.metaDescription ? 'bodyHtml: ' + '"' + product.metaDescription + '"' : ''}
+    ${product.category ? 'category: ' + '"' + product.category + '"' : ''}
+    ${product.collection ? 'collectionsToJoin: ' + '"' + product.collection + '"' : ''}
     metafields: [
       {
         namespace: "product_origin",

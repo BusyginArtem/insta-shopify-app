@@ -20,21 +20,20 @@ import SyncModal from './components/SyncModal'
 import AddToShopModal from './components/AddToShopModal'
 
 // ** Product slice
+import { fetchDBProducts, selectIntersectedProducts, selectFetchClientProductsStatus } from 'src/store/products'
 import {
-  fetchDBProducts,
   addToShopProducts,
-  selectIntersectedProducts,
-  selectFetchClientProductsStatus,
   selectShopifyProductsStatus,
-  fetchProductCategories
-} from 'src/store/products'
+  fetchShopifyProductCategories,
+  fetchShopifyCollections
+} from 'src/store/shopify'
 import { useAppDispatch, useTypedSelector } from 'src/store'
 
 // ** Hooks
 import useAuth from 'src/hooks/useAuth'
 
 // ** Types
-import type { ProductType } from 'src/types'
+import type { ExtendedProductTypeByShopifyFields, ProductType } from 'src/types'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -50,7 +49,7 @@ const PAGE_SIZE = 5
 //   [PRODUCT_STATUSES.ARCHIVED]: 'secondary'
 // } as const
 
-type RowProps = { row: ProductType }
+type RowProps = { row: ExtendedProductTypeByShopifyFields }
 
 const renderProduct = (row: ProductType) => {
   if (row.thumbnail) {
@@ -151,8 +150,9 @@ const columns = [
       return (
         <Stack flexDirection='row' gap={2}>
           <IconButton
-            onClick={() => {
-              window.open(row.permalink, '_blank')?.focus()!
+            onClick={e => {
+              e.stopPropagation()
+              window.open(row.permalink, '_blank')?.focus()
             }}
           >
             <Icon icon='skill-icons:instagram' fontSize={18} />
@@ -173,8 +173,9 @@ const columns = [
 
           {row.onlineStorePreviewUrl && (
             <IconButton
-              onClick={() => {
-                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()!
+              onClick={e => {
+                e.stopPropagation()
+                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()
               }}
             >
               <Icon icon='ph:eye-bold' fontSize={20} />
@@ -220,8 +221,10 @@ const ProductsPage = () => {
   }
 
   const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
+    console.log('%c vertexAIEnabled', 'color: green; font-weight: bold;', vertexAIEnabled)
     if (vertexAIEnabled) {
-      await dispatch(fetchProductCategories())
+      await dispatch(fetchShopifyProductCategories())
+      await dispatch(fetchShopifyCollections())
     }
 
     await dispatch(addToShopProducts({ productIds: selectionModel, vertexAIEnabled }))
