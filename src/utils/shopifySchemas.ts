@@ -116,8 +116,6 @@ query {
 //   }
 // }`
 
-// category: "${product.category || ''}"
-// collectionsToJoin: "${product.collection! || ''}"
 export const createProduct = (product: ExtendedProductTypeByShopifyFields) => `
 mutation {
   productCreate(input: {

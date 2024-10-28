@@ -21,6 +21,7 @@ export const extractProductId = (id: string) => {
 
 export const processProductsByVertexAI = async (
   products: ProductType[],
+  //                 ^?
   categories: StorageFileStructure,
   collections: StorageFileStructure
 ) => {
@@ -72,7 +73,7 @@ export const processProductsByVertexAI = async (
   if (result.response.candidates?.length) {
     const text = result.response.candidates[0].content.parts[0].text!
     // if (text && isValidJSON(text)) {
-    parsedContent = JSON.parse(text.replace('```json', '').replace('```', '')!)
+    parsedContent = JSON.parse(text.replace('```json', '').replace('```', ''))
     // }
   }
 

@@ -37,7 +37,7 @@ function ShopifyNavMenuLink({ href, onClick, ...props }: Props) {
 
   return (
     <a
-      href={href?.toString()!}
+      href={href?.toString()}
       // active={{ value: router.pathname === href }}
       onClick={e => {
         e.preventDefault()

@@ -152,7 +152,7 @@ const columns = [
           <IconButton
             onClick={e => {
               e.stopPropagation()
-              window.open(row.permalink, '_blank')?.focus()!
+              window.open(row.permalink, '_blank')?.focus()
             }}
           >
             <Icon icon='skill-icons:instagram' fontSize={18} />
@@ -175,7 +175,7 @@ const columns = [
             <IconButton
               onClick={e => {
                 e.stopPropagation()
-                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()!
+                window.open(row.onlineStorePreviewUrl, '_blank')?.focus()
               }}
             >
               <Icon icon='ph:eye-bold' fontSize={20} />

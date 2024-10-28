@@ -29,12 +29,18 @@
   ],
   "eslint.format.enable": true,
   // Package manager Configs
-  "eslint.packageManager": "yarn",
   "npm.packageManager": "yarn",
   // Extension: cSpell
   "cSpell.words": [
     "Customizer"
   ],
   "search-node-modules.path": "node_modules",
-  "markdown.extension.toc.updateOnSave": false
+  "indentRainbow.lightIndicatorStyleLineWidth": 1,
+  // the same colors as above but more visible
+  // "indentRainbow.colors": [
+  //   "rgba(255,255,64,0.3)",
+  //   "rgba(127,255,127,0.3)",
+  //   "rgba(255,127,255,0.3)",
+  //   "rgba(79,236,236,0.3)"
+  // ]
 }
