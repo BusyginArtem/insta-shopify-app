@@ -58,7 +58,7 @@ const authReducer = (state: AuthValuesType, action: Actions) => {
         ...state,
         selectedInstagramAccount: action.payload
       }
-
+    // TODO FIX
     case ActionTypes.STORE_USER_ACCOUNT:
       return {
         ...state,

@@ -37,6 +37,7 @@ import { useAppDispatch } from 'src/store'
 
 // ** Store actions
 import { saveDBProducts } from 'src/store/products'
+import { FirebaseError } from '@firebase/app'
 
 const COLLECTION_SHOPS = 'shops'
 
@@ -164,10 +165,11 @@ const AuthProvider = ({ children }: Props) => {
       unsubscribe()
     }
   }, [firebaseAuth.auth])
-
+  // ANCHOR
   const handleLogin = async () => {
     dispatch({ type: ActionTypes.SIGN_IN })
-
+    console.log('%c firebaseAuth.auth', 'color: green; font-weight: bold;', firebaseAuth.auth)
+    console.log('%c firebaseAuth.fbProvider', 'color: red; font-weight: bold;', firebaseAuth.fbProvider)
     try {
       const result: UserCredential = await signInWithPopup(firebaseAuth.auth, firebaseAuth.fbProvider)
       const credential: OAuthCredential | null = FacebookAuthProvider.credentialFromResult(result)

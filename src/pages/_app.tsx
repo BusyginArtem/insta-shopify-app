@@ -29,7 +29,7 @@ import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import AuthGuard from 'src/@core/components/auth/AuthGuard'
 import GuestGuard from 'src/@core/components/auth/GuestGuard'
 import AppSideNav from 'src/navigation/AppSideNav'
-import RoutePropagator from 'src/navigation/RoutePropagator'
+// import RoutePropagator from 'src/navigation/RoutePropagator'
 
 // ** Spinner Import
 import Spinner from 'src/@core/components/spinner'
@@ -115,11 +115,12 @@ const App = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: Ex
         <Head>
           <title>Insta Shop App</title>
           <meta name='description' content='Insta Shop App – is the app for Instagram users.' />
+          <meta name="facebook-domain-verification" content="j7rsc14q8kn15oseytojaw6gynjlwf" />
         </Head>
 
         <AppSideNav />
 
-        <RoutePropagator />
+        {/* <RoutePropagator /> */}
 
         <AuthProvider>
           <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>

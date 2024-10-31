@@ -21,7 +21,6 @@ export const extractProductId = (id: string) => {
 
 export const processProductsByVertexAI = async (
   products: ProductType[],
-  //                 ^?
   categories: StorageFileStructure,
   collections: StorageFileStructure
 ) => {
