@@ -4,7 +4,6 @@ import useFirebaseApp from './useFirebaseApp'
 
 export default function useFirebaseVertexAI(overrideConfig = null) {
   const app = useFirebaseApp(overrideConfig)
-
   const vertexAI = getVertexAI(app)
 
   return {

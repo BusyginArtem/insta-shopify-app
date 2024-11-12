@@ -150,17 +150,18 @@ export const formatProducts = async ({ shop, userId, posts }: FormatProductsType
 
   formattedProducts = await Promise.all(
     formattedProducts.map(async formattedProduct => {
+      console.log('%c formattedProduct', 'color: green; font-weight: bold;', formattedProduct)
       if (formattedProduct.thumbnail) {
         formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
-        formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
+        // formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
       }
 
       if (formattedProduct.images) {
-        formattedProduct.images = await Promise.all(
-          formattedProduct.images.map(async image => {
-            return await uploadImage(image, shopId)
-          })
-        )
+        // formattedProduct.images = await Promise.all(
+        //   formattedProduct.images.map(async image => {
+        //     return await uploadImage(image, shopId)
+        //   })
+        // )
       }
 
       return formattedProduct

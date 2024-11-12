@@ -191,8 +191,8 @@ export const fetchShopifyProductCategories = createAppAsyncThunk(
       )
 
       // const categoriesFileRef = await uploadJSONFile(categoryList, 'categories')
-      const categoriesFileRef = await uploadCSVFile({ csv: convertObjToCSV(categoryList), fileName: 'categories' })
-      console.log('%c categoriesFileRef', 'color: green; font-weight: bold;', categoriesFileRef)
+      // const categoriesFileRef = await uploadCSVFile({ csv: convertObjToCSV(categoryList), fileName: 'categories' })
+      // console.log('%c categoriesFileRef', 'color: green; font-weight: bold;', categoriesFileRef)
       // if (categoriesFileRef) {
       return {
         list: categoryList
@@ -244,8 +244,8 @@ export const fetchShopifyCollections = createAppAsyncThunk(
     } while (hasNextPage)
 
     // const collectionsFileRef = await uploadJSONFile(collections, 'collections')
-    const collectionsFileRef = await uploadCSVFile({ csv: convertObjToCSV(collections), fileName: 'collections' })
-    console.log('%c collectionsFileRef', 'color: green; font-weight: bold;', collectionsFileRef)
+    // const collectionsFileRef = await uploadCSVFile({ csv: convertObjToCSV(collections), fileName: 'collections' })
+    // console.log('%c collectionsFileRef', 'color: green; font-weight: bold;', collectionsFileRef)
 
     // if (collectionsFileRef) {
     return {
