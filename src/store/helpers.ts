@@ -41,18 +41,19 @@ export const processProductsByVertexAI = async (
       }
     },
     {
-      text: `I provided you with images of products, product categories in CSV format and product collections in CSV format.
+      text: `I provided you with images of products, categories in CSV format and collections in CSV format.
         One image - one product.
-        Only to start for each image you need to focus and understand what product is on the image.
-        Identify and send me a title, description, meta title, meta description, category ID and collection ID for each product on the image for publishing this product on my Shopify online store.
+        Only to start for each image you need to focus and understood what product on the image.
+        Identify and send me a title, description, meta title, meta description for each product on the image for publishing this product on my online store.
         Keys for product object: title, description, meta_title, meta_description, category, collection.
-        When you identify the title, description, meta title, and meta description for each product, you need to identify the product category ID and product collection ID based on the image, title, and description you have.
-        In the first part, I attached categories of products in CSV format where there are two columns: ID and NAME.
-        In the second part, I attached collections of products in CSV format where there are two columns: ID and NAME.
-        I need to add this product to the right category and collection that I have in my Shopify online store.
-        Provide me with a valid JSON array format without any other data for each product and save the product's order that I sent. Don't ask me any additional questions.
-        If you can't identify any field for the image send an empty object.
-        If you can identify the title and description but can't identify one or more fields leave unidentified fields as empty strings.`
+        When you identified title, description, meta title,
+        meta description for each product you need to do next actions base on image, title and description that you have.
+        In the first part before this text I attached collections of products in CSV format where are two columns: ID and NAME.
+        In the second part before this text I attached categories of products in CSV format where are two columns: ID and NAME.
+        I need to add this product to right category and collection that I have in my online store.
+        Provide me with valid json array format without any other data for each product and save product's order that I sent. Don't ask me any additional questions.
+        If you can't identify any field for image send empty object.
+        If you can identify title and description but can't identify one or more fields leave unidentified fields as empty strings.`
     },
     ...processedProducts.map(product => ({
       inlineData: {
@@ -77,7 +78,7 @@ export const processProductsByVertexAI = async (
     const text = result.response.candidates[0].content.parts[0].text!
     parsedContent = JSON.parse(text.replace('```json', '').replace('```', ''))
   }
-
+  console.log('%c parsedContent', 'color: green; font-weight: bold;', parsedContent)
   processedProducts = processedProducts.map((product, idx) => {
     let { thumbnailBase64, ...processedProduct } = product
 

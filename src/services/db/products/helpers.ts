@@ -147,10 +147,9 @@ export const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], sho
 export const formatProducts = async ({ shop, userId, posts }: FormatProductsType) => {
   const shopId = shop.id
   let formattedProducts = posts.map(post => formatProduct(post, shopId, userId))
-
+  // TODO uncomment
   formattedProducts = await Promise.all(
     formattedProducts.map(async formattedProduct => {
-      console.log('%c formattedProduct', 'color: green; font-weight: bold;', formattedProduct)
       if (formattedProduct.thumbnail) {
         formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
         // formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
