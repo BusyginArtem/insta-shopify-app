@@ -5,7 +5,7 @@ import { getDownloadURL, ref, uploadString, uploadBytes } from '@firebase/storag
 
 // ** Types
 import type { User } from '@firebase/auth'
-import type { InstagramPostType, StorageFileStructure, ProductType, Shop } from 'src/types'
+import type { Shop, UserId, InstagramPostType, StorageFileStructure, ProductTypeWithoutId } from 'src/types'
 // import { InlineDataPart, TextPart } from 'firebase/vertexai-preview'
 
 // ** Hooks
@@ -90,7 +90,11 @@ export const getImageBase64 = async (url: string) => {
   return `${base64String}`
 }
 
-export const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], shopOwnerId: User['uid']): ProductType => {
+export const formatProduct = (
+  igPost: InstagramPostType,
+  shopId: Shop['id'],
+  shopOwnerId: UserId
+): ProductTypeWithoutId => {
   let type = null
   let thumbnail = null
   let images: string[] = []
@@ -147,20 +151,20 @@ export const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], sho
 export const formatProducts = async ({ shop, userId, posts }: FormatProductsType) => {
   const shopId = shop.id
   let formattedProducts = posts.map(post => formatProduct(post, shopId, userId))
-
+  // TODO uncomment
   formattedProducts = await Promise.all(
     formattedProducts.map(async formattedProduct => {
       if (formattedProduct.thumbnail) {
         formattedProduct.thumbnailBase64 = await getImageBase64(formattedProduct.thumbnail)
-        formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
+        // formattedProduct.thumbnail = await uploadImage(formattedProduct.thumbnail, shopId)
       }
 
       if (formattedProduct.images) {
-        formattedProduct.images = await Promise.all(
-          formattedProduct.images.map(async image => {
-            return await uploadImage(image, shopId)
-          })
-        )
+        // formattedProduct.images = await Promise.all(
+        //   formattedProduct.images.map(async image => {
+        //     return await uploadImage(image, shopId)
+        //   })
+        // )
       }
 
       return formattedProduct

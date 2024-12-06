@@ -1,27 +1,34 @@
 import { REQUEST_STATUTES } from './../configs/constants'
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'ui-nav-menu': any
-    }
-  }
-}
 
 import { User } from '@firebase/auth'
 import { FieldValue } from '@firebase/firestore'
 
-export type UserDataType = {
-  id: number
-  role: string
-  email: string
-  fullName: string
-  username: string
-  password: string
-  avatar?: string | null
+declare const __brand__type__: unique symbol
+
+type Brand<BaseType, BrandName> = BaseType & {
+  readonly [__brand__type__]: BrandName
 }
 
+export type UserId = User
+export type ShopId = Brand<string, 'SHOP_ID'>
+export type InstagramAccountId = Brand<string, 'INSTA_ACCOUNT_ID'>
+export type InstagramPostId = Brand<string, 'INSTA_POST_ID'>
+export type ShopifyProductId = Brand<string, 'SHOPIFY_PRODUCT_ID'>
+export type ShopifyProductNodeId = Brand<string, 'SHOPIFY_PRODUCT_NODE_ID'>
+export type ShopifyCategoryNodeId = Brand<string, 'SHOPIFY_CATEGORY_NODE_ID'>
+
+// export type UserDataType = {
+//   id: UserDataId
+//   role: string
+//   email: string
+//   fullName: string
+//   username: string
+//   password: string
+//   avatar?: string | null
+// }
+
 export type Shop = {
-  id: string
+  id: ShopId
   ownerId: string
   shopName: string
   shopDescription: string
@@ -59,7 +66,7 @@ export type SignInPayloadType = {
 
 export type InstagramAccountType = {
   profile_picture_url: string
-  id: string
+  id: InstagramAccountId
   username: string
   name: string
   ig_id: number
@@ -67,7 +74,7 @@ export type InstagramAccountType = {
 }
 
 export type InstagramPostType = {
-  id: string
+  id: InstagramPostId
   caption: string
   media_url: string
   media_type: string
@@ -83,10 +90,10 @@ export type InstagramSetupFormValues = {
 }
 
 export type ProductType = {
-  id?: string
+  id: ShopifyProductId
   instagramId: string
   shopId: Shop['id']
-  shopOwnerId: User['uid']
+  shopOwnerId: UserId
   type: string | null
   status: 'draft'
   title: string | null
@@ -108,8 +115,10 @@ export type ProductType = {
   createdAt: FieldValue
   updatedAt: FieldValue
   thumbnailBase64?: string
-  shopifyProductId?: string
+  shopifyProductId?: ShopifyProductId
 }
+
+export type ProductTypeWithoutId = Omit<ProductType, 'id'>
 
 export type ExtendedProductTypeByShopifyFields = ProductType & {
   collection?: string
@@ -132,16 +141,16 @@ export type GeneratedContent = PostContent[]
 
 type ShopifyEdgeMetaFieldNode = {
   node: {
-    key: 'instagram_id'
-    namespace: 'product_origin'
-    value: 'string'
+    // key: 'instagram_id'
+    // namespace: 'product_origin'
+    value: string
   }
 }
 
 export type ShopifyEdge = {
-  cursor: string
+  // cursor: string
   node: {
-    id: string
+    id: ShopifyProductNodeId
     onlineStorePreviewUrl: string
     metafields: {
       edges: ShopifyEdgeMetaFieldNode[]
@@ -156,10 +165,12 @@ export type StorageFileStructure = {
 }
 
 export type ShopifyCategory = {
-  cursor: string
+  // cursor: string
   node: {
     name: string
+    fullName: string
     isLeaf: boolean
-    id: string
+    level: number
+    id: ShopifyCategoryNodeId
   }
 }

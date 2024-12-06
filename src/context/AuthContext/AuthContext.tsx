@@ -2,7 +2,6 @@
 import { createContext, useEffect, ReactNode, useReducer } from 'react'
 
 // ** Third party imports
-// import { v4 } from 'uuid'
 import {
   signOut,
   UserCredential,

@@ -16,7 +16,7 @@ const RoutePropagator = () => {
   const { route } = router
   // const appBridge = React.useContext(AppBridgeContext)
   const appBridge = useAppBridge()
-  console.log('%c appBridge', 'color: green; font-weight: bold;', appBridge)
+
   // Subscribe to appBridge changes - captures appBridge urls
   // and sends them to Next.js router. Use useEffect hook to
   // load once when component mounted

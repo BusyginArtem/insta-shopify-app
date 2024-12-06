@@ -1,14 +1,14 @@
 // ** Types
-import type { ProductType } from 'src/types'
+import type { InstagramPostId, ProductType, ProductTypeWithoutId, ShopId } from 'src/types'
 import type { Service } from './types'
 
 interface IProductDBAdapter {
-  getProductList: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
+  getProductList: ({ shopId }: { shopId: ShopId }) => Promise<ProductType[]>
   saveProducts: (products: ProductType[]) => Promise<void>
   editProducts: (products: ProductType[]) => Promise<void>
-  getProductCount: ({ shopId }: { shopId: string }) => Promise<number>
+  getProductCount: ({ shopId }: { shopId: ShopId }) => Promise<number>
   clearProductsDB: () => Promise<void>
-  checkProductExistence: ({ instagramId }: { instagramId: string }) => Promise<boolean>
+  checkProductExistence: ({ instagramId }: { instagramId: InstagramPostId }) => Promise<boolean>
   productService: Service
 }
 
@@ -19,7 +19,7 @@ class ProductDBAdapter implements IProductDBAdapter {
     this.productService = productService
   }
 
-  async getProductList({ shopId }: { shopId: string }): Promise<ProductType[]> {
+  async getProductList({ shopId }: { shopId: ShopId }): Promise<ProductType[]> {
     if (this.productService.getAllByShopId) {
       return await this.productService.getAllByShopId({ shopId })
     }
@@ -27,7 +27,7 @@ class ProductDBAdapter implements IProductDBAdapter {
     return []
   }
 
-  async saveProducts(products: ProductType[]) {
+  async saveProducts(products: ProductTypeWithoutId[]) {
     await this.productService.save(products)
   }
 
@@ -39,7 +39,7 @@ class ProductDBAdapter implements IProductDBAdapter {
     )
   }
 
-  async getProductCount({ shopId }: { shopId: string }): Promise<number> {
+  async getProductCount({ shopId }: { shopId: ShopId }): Promise<number> {
     if (this.productService.getCount) {
       return await this.productService.getCount({ shopId })
     }
@@ -53,7 +53,7 @@ class ProductDBAdapter implements IProductDBAdapter {
     }
   }
 
-  async checkProductExistence({ instagramId }: { instagramId: string }): Promise<boolean> {
+  async checkProductExistence({ instagramId }: { instagramId: InstagramPostId }): Promise<boolean> {
     if (this.productService.isStored) {
       return await this.productService.isStored({ instagramId })
     }

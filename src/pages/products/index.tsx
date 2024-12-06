@@ -221,7 +221,6 @@ const ProductsPage = () => {
   }
 
   const handleAddProductsToShop = async (vertexAIEnabled: boolean) => {
-    console.log('%c vertexAIEnabled', 'color: green; font-weight: bold;', vertexAIEnabled)
     if (vertexAIEnabled) {
       await dispatch(fetchShopifyProductCategories())
       await dispatch(fetchShopifyCollections())

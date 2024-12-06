@@ -26,8 +26,9 @@ const AuthGuard = (props: AuthGuardProps) => {
       if (!router.isReady) {
         return
       }
-
-      if (auth.isReady && auth.user === null && !window.localStorage.getItem(authConfig.storageTokenKeyName)) {
+      // TODO FIX
+      // if (auth.isReady && auth.user === null && !window.localStorage.getItem(authConfig.storageTokenKeyName)) {
+      if (auth.user === null && !window.localStorage.getItem(authConfig.storageTokenKeyName)) {
         if (router.asPath !== APP_ROUTES.MAIN) {
           router.replace({
             pathname: APP_ROUTES.LOGIN,

@@ -5,7 +5,7 @@ import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit'
 import { REQUEST_STATUTES } from 'src/configs/constants'
 
 // ** Types
-import type { ProductType, InstagramPostType, RequestStatusTypes } from 'src/types'
+import type { InstagramPostType, RequestStatusTypes, ShopId, ProductType } from 'src/types'
 import { AppDispatch, RootState } from '.'
 import type { SaveDBProductsType } from 'src/services/db/products/types'
 
@@ -32,7 +32,7 @@ export const createAppAsyncThunk = createAsyncThunk.withTypes<{
 }>()
 
 // ** Fetch DB products
-export const fetchDBProducts = createAppAsyncThunk('products/fetchDBItems', async ({ shopId }: { shopId: string }) => {
+export const fetchDBProducts = createAppAsyncThunk('products/fetchDBItems', async ({ shopId }: { shopId: ShopId }) => {
   return dbAdapter.getProductList({ shopId })
 })
 

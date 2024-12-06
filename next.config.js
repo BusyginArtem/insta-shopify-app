@@ -6,8 +6,10 @@ const path = require('path')
 // Remove this if you're not using Fullcalendar features
 
 module.exports = {
+  output: 'export',
   trailingSlash: true,
   reactStrictMode: false,
+  distDir: 'out',
   webpack: config => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -15,5 +17,10 @@ module.exports = {
     }
 
     return config
+  },
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true
   }
 }

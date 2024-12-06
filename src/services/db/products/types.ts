@@ -2,26 +2,35 @@
 // import type { IFacebookService } from 'src/services/facebook'
 
 // ** Types
-import { InstagramPostType, ProductType, Shop } from 'src/types'
+import {
+  InstagramAccountId,
+  InstagramPostId,
+  InstagramPostType,
+  ProductType,
+  ProductTypeWithoutId,
+  Shop,
+  ShopId,
+  UserId
+} from 'src/types'
 
 export interface Service {
-  getAllByShopId: ({ shopId }: { shopId: string }) => Promise<ProductType[]>
-  save: (products: ProductType[]) => Promise<void>
-  getCount: ({ shopId }: { shopId: string }) => Promise<number>
+  getAllByShopId: ({ shopId }: { shopId: ShopId }) => Promise<ProductType[]>
+  save: (products: ProductTypeWithoutId[]) => Promise<void>
+  getCount: ({ shopId }: { shopId: ShopId }) => Promise<number>
   edit: (product: ProductType) => Promise<void>
   clear?: () => Promise<void>
-  isStored: ({ instagramId }: { instagramId: string }) => Promise<boolean>
+  isStored: ({ instagramId }: { instagramId: InstagramPostId }) => Promise<boolean>
 }
 
 export type FormatProductsType = {
   shop: Shop
   posts: InstagramPostType[]
-  userId: string
+  userId: UserId
 }
 
 export type SaveDBProductsType = {
   shop: Shop
-  instagramAccountId: string
-  userId: string
+  instagramAccountId: InstagramAccountId
+  userId: UserId
   facebookAccessToken: string
 }
