@@ -11,8 +11,9 @@ import type {
   ShopifyCategory,
   StorageFileStructure,
   RequestStatusTypes,
-  ProductType,
-  ExtendedProductTypeByShopifyFields
+  ExtendedProductTypeByShopifyFields,
+  ShopifyProductId,
+  ShopifyProductNodeId
 } from 'src/types'
 import { AppDispatch, RootState } from '.'
 import type { GridRowId } from '@mui/x-data-grid'
@@ -50,24 +51,27 @@ export const fetchShopifyInstagramProducts = createAppAsyncThunk('products/fetch
   let shopifyProducts: ShopifyProduct[] = []
 
   do {
-    const { data } = await shopifyAdminFetch({ query: queryProductsByInstagramOrigin() })
-
-    hasNextPage = data.products.pageInfo.hasNextPage
-    const products = data.products.edges
-
-    const shopifyStoredProducts = products
-      .map((product: ShopifyEdge) => {
-        if (product.node.metafields.edges[0]?.node?.value) {
-          return {
-            shopifyProductId: extractProductId(product.node.id),
-            instagramId: product.node.metafields.edges[0]?.node?.value,
-            onlineStorePreviewUrl: product.node.onlineStorePreviewUrl
-          }
+    const { products } = await shopifyAdminFetch<{
+      products: {
+        pageInfo: {
+          hasNextPage: boolean
         }
+        edges: ShopifyEdge[]
+      }
+    }>({ query: queryProductsByInstagramOrigin() })
 
-        return null
+    hasNextPage = products.pageInfo.hasNextPage
+    const productEdges = products.edges
+
+    const shopifyStoredProducts = productEdges
+      .filter((edge: ShopifyEdge) => edge.node.metafields.edges[0]?.node?.value)
+      .map((edge: ShopifyEdge) => {
+        return {
+          shopifyProductId: extractProductId(edge.node.id),
+          instagramId: edge.node.metafields.edges[0].node.value,
+          onlineStorePreviewUrl: edge.node.onlineStorePreviewUrl
+        }
       })
-      .filter((product: any) => product)
 
     shopifyProducts = [...shopifyProducts, ...shopifyStoredProducts]
   } while (hasNextPage)
@@ -82,7 +86,7 @@ export const addToShopProducts = createAppAsyncThunk(
     try {
       const { products, shopify } = getState()
 
-      let selectedProductsData = products.data.filter(product => productIds.includes(product.id as string))
+      let selectedProductsData = products.data.filter(product => productIds.includes(product.id))
       const instagramIDs: ShopifyProduct[] = []
 
       if (vertexAIEnabled && shopify.categories.list && shopify.collections.list) {
@@ -96,15 +100,22 @@ export const addToShopProducts = createAppAsyncThunk(
 
       selectedProductsData = await Promise.all(
         selectedProductsData.map(async product => {
-          const { data } = await shopifyAdminFetch({
+          const { productCreate } = await shopifyAdminFetch<{
+            productCreate: {
+              product: {
+                id: ShopifyProductNodeId
+                onlineStorePreviewUrl: string
+              }
+            }
+          }>({
             query: createProduct(product)
           })
 
-          if (data.productCreate?.product?.id) {
+          if (productCreate?.product?.id) {
             instagramIDs.push({
               instagramId: product.instagramId,
-              shopifyProductId: extractProductId(data.productCreate.product.id),
-              onlineStorePreviewUrl: data.productCreate.product.onlineStorePreviewUrl
+              shopifyProductId: extractProductId(productCreate.product.id),
+              onlineStorePreviewUrl: productCreate.product.onlineStorePreviewUrl
             })
           }
 
@@ -127,17 +138,26 @@ export const addToShopProducts = createAppAsyncThunk(
 const fetchProductCategoriesNestedLevels = async (category: ShopifyCategory) => {
   let nestedCategoryList: StorageFileStructure = {}
 
-  const result = await shopifyAdminFetch({
+  const { taxonomy } = await shopifyAdminFetch<{
+    taxonomy: {
+      categories: {
+        edges: ShopifyCategory[]
+        pageInfo: {
+          hasNextPage: boolean
+        }
+      }
+    }
+  }>({
     query: fetchProductCategoriesNestedLevel({ categoryId: category.node.id })
   })
 
-  let data = result.data?.taxonomy?.categories
+  let categories = taxonomy?.categories
 
-  if (!data?.edges.length) {
+  if (!categories?.edges.length) {
     return nestedCategoryList
   }
 
-  const nestedCategories = data.edges
+  const nestedCategories = categories.edges
 
   for (const { node } of nestedCategories) {
     if (node.isLeaf) {
@@ -162,12 +182,21 @@ export const fetchShopifyProductCategories = createAppAsyncThunk(
       }
     }
 
-    const { data } = await shopifyAdminFetch({
+    const { taxonomy } = await shopifyAdminFetch<{
+      taxonomy: {
+        categories: {
+          edges: ShopifyCategory[]
+          pageInfo: {
+            hasNextPage: boolean
+          }
+        }
+      }
+    }>({
       query: fetchProductCategoriesTopLevel()
     })
 
-    if (data?.taxonomy?.categories?.edges.length) {
-      const categoryList = await data.taxonomy.categories.edges.reduce(
+    if (taxonomy?.categories?.edges.length) {
+      const categoryList = await taxonomy.categories.edges.reduce(
         async (
           categoriesAccumulatorPromise: Promise<StorageFileStructure>,
           category: ShopifyCategory
@@ -210,7 +239,7 @@ export const fetchShopifyCollections = createAppAsyncThunk(
   'products/getShopifyCollections',
   async (_, { getState }) => {
     const { shopify } = getState()
-    const collections: StorageFileStructure = {}
+    let collections: any = {}
 
     if (shopify.collections.list) {
       return {
@@ -223,22 +252,34 @@ export const fetchShopifyCollections = createAppAsyncThunk(
     let cursor: string | null = null
 
     do {
-      const { data } = await shopifyAdminFetch({
+      collections = await shopifyAdminFetch<{
+        collections: {
+          pageInfo: {
+            hasNextPage: boolean
+          }
+          edges: {
+            node: {
+              id: string
+              title: string
+            }[]
+          }
+        }
+      }>({
         query: fetchCollections({ cursor })
       })
 
-      if (!data?.collections.edges.length) {
+      if (!collections.edges.length) {
         return collections
       }
 
-      hasNextPage = data.collections.pageInfo.hasNextPage
+      hasNextPage = collections.pageInfo.hasNextPage
 
-      if (hasNextPage && data.collections.edges.length) {
-        const lastNode = data.collections.edges.at(-1)
+      if (hasNextPage && collections.edges.length) {
+        const lastNode = collections.edges.at(-1)
         cursor = lastNode?.cursor || null
       }
 
-      for (const { node } of data.collections.edges) {
+      for (const { node } of collections.edges) {
         collections[node.id] = node.title
       }
     } while (hasNextPage)

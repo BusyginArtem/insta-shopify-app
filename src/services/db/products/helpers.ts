@@ -5,7 +5,7 @@ import { getDownloadURL, ref, uploadString, uploadBytes } from '@firebase/storag
 
 // ** Types
 import type { User } from '@firebase/auth'
-import type { InstagramPostType, StorageFileStructure, ProductType, Shop } from 'src/types'
+import type { Shop, UserId, InstagramPostType, StorageFileStructure, ProductTypeWithoutId } from 'src/types'
 // import { InlineDataPart, TextPart } from 'firebase/vertexai-preview'
 
 // ** Hooks
@@ -90,7 +90,11 @@ export const getImageBase64 = async (url: string) => {
   return `${base64String}`
 }
 
-export const formatProduct = (igPost: InstagramPostType, shopId: Shop['id'], shopOwnerId: User['uid']): ProductType => {
+export const formatProduct = (
+  igPost: InstagramPostType,
+  shopId: Shop['id'],
+  shopOwnerId: UserId
+): ProductTypeWithoutId => {
   let type = null
   let thumbnail = null
   let images: string[] = []

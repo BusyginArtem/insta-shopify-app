@@ -1,3 +1,4 @@
+import { ShopifyProductNodeId } from './../types/index'
 // ** Types
 import { FileDataPart, GenerateContentRequest, InlineDataPart, TextPart } from 'firebase/vertexai-preview'
 import { GeneratedContent, StorageFileStructure, ProductType, PostContent } from 'src/types'
@@ -5,7 +6,7 @@ import { GeneratedContent, StorageFileStructure, ProductType, PostContent } from
 // ** Hooks
 import useFirebaseVertexAI from 'src/hooks/useFirebaseVertexAI'
 
-export const extractProductId = (id: string) => {
+export const extractProductId = (id: ShopifyProductNodeId) => {
   const startIdIdx = id.lastIndexOf('/')
 
   return id.slice(startIdIdx + 1)

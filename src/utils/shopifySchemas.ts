@@ -1,4 +1,4 @@
-import { ExtendedProductTypeByShopifyFields, ProductType } from 'src/types'
+import { ExtendedProductTypeByShopifyFields, ShopifyCategoryNodeId } from 'src/types'
 import { v4 } from 'uuid'
 
 const productsGql = `
@@ -68,7 +68,7 @@ query {
   }
 }`
 
-export const fetchProductCategoriesNestedLevel = ({ categoryId }: { categoryId: string }) => `
+export const fetchProductCategoriesNestedLevel = ({ categoryId }: { categoryId: ShopifyCategoryNodeId }) => `
 query {
   taxonomy {
     categories(first: 250, descendantsOf: "${categoryId}") {

@@ -6,7 +6,7 @@ import useFirebaseFirestore from 'src/hooks/useFirebaseFirestore'
 
 // ** Types
 import { Service } from './types'
-import { ProductType } from 'src/types'
+import { InstagramPostId, ProductType, ShopId } from 'src/types'
 
 const PRODUCTS_COLLECTION = 'products'
 
@@ -24,7 +24,7 @@ class FirestoreService implements Service {
     return FirestoreService.instance
   }
 
-  public async getAllByShopId({ shopId }: { shopId: string }): Promise<ProductType[]> {
+  public async getAllByShopId({ shopId }: { shopId: ShopId }): Promise<ProductType[]> {
     const productsRef = collection(this.db, PRODUCTS_COLLECTION)
     const querySnapshot = await getDocs(query(productsRef, where('shopId', '==', shopId)))
 
@@ -43,7 +43,7 @@ class FirestoreService implements Service {
     await updateDoc(productDocRef, productData)
   }
 
-  public async getCount({ shopId }: { shopId: string }): Promise<number> {
+  public async getCount({ shopId }: { shopId: ShopId }): Promise<number> {
     const coll = collection(this.db, PRODUCTS_COLLECTION)
     const q = query(coll, where('shopId', '==', shopId))
     const snapshot = await getCountFromServer(q)
@@ -51,7 +51,7 @@ class FirestoreService implements Service {
     return snapshot.data().count || 0
   }
 
-  public async isStored({ instagramId }: { instagramId: string }): Promise<boolean> {
+  public async isStored({ instagramId }: { instagramId: InstagramPostId }): Promise<boolean> {
     const productsRef = collection(this.db, PRODUCTS_COLLECTION)
 
     const q = query(productsRef, where('instagramId', '==', instagramId))

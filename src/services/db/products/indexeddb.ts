@@ -3,7 +3,7 @@ import { v4 } from 'uuid'
 
 // ** Types
 import { Service } from './types'
-import { ProductType } from 'src/types'
+import { InstagramPostId, ProductType, ProductTypeWithoutId, ShopId } from 'src/types'
 
 const PRODUCTS_DB = 'products'
 const PRODUCTS_DB_SHOP_ID_KEY_PATH = 'shopId'
@@ -75,7 +75,7 @@ class IndexedDBService implements Service {
     })
   }
 
-  public async getAllByShopId({ shopId }: { shopId: string }): Promise<ProductType[]> {
+  public async getAllByShopId({ shopId }: { shopId: ShopId }): Promise<ProductType[]> {
     return new Promise((resolve, reject) => {
       if (!this.db) return reject('Database is not initialized')
 
@@ -89,7 +89,7 @@ class IndexedDBService implements Service {
     })
   }
 
-  public async save(products: ProductType[]): Promise<void> {
+  public async save(products: ProductTypeWithoutId[]): Promise<void> {
     if (!this.db) {
       throw new Error('Database is not initialized')
     }
@@ -175,7 +175,7 @@ class IndexedDBService implements Service {
     })
   }
 
-  public async isStored({ instagramId }: { instagramId: string }): Promise<boolean> {
+  public async isStored({ instagramId }: { instagramId: InstagramPostId }): Promise<boolean> {
     return new Promise((resolve, reject) => {
       if (!this.db) return reject('Database is not initialized')
 
